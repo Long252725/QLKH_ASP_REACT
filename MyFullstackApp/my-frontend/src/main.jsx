@@ -11,7 +11,7 @@ import Edit from './Pages/Edit.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 
-const URL = import.meta.env.URL_PRODUCTION || 'https://localhost:5066';
+const URL = import.meta.env.VITE_URL_PRODUCTION || 'https://localhost:5066';
 
 const router = createBrowserRouter([
   {

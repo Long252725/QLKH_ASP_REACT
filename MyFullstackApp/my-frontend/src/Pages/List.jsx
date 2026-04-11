@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const List = (url) => {
+    console.log("list", url)
     const [customers, setCustomers] = useState([]);
     const [checkAll, setCheckAll] = useState(false);
     const [showSucess, setShowSucess] = useState(false);
