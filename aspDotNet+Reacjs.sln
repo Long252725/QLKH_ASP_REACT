@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MyFullstackApp", "MyFullstackApp", "{99E9F8C1-7017-5071-2344-BDCF92A31689}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyBackendAPI", "MyFullstackApp\MyBackendAPI\MyBackendAPI.csproj", "{21254112-B13D-16C8-F9E5-89E0F83D4841}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{21254112-B13D-16C8-F9E5-89E0F83D4841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21254112-B13D-16C8-F9E5-89E0F83D4841}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21254112-B13D-16C8-F9E5-89E0F83D4841}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21254112-B13D-16C8-F9E5-89E0F83D4841}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{21254112-B13D-16C8-F9E5-89E0F83D4841} = {99E9F8C1-7017-5071-2344-BDCF92A31689}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C28F7588-A679-4429-B4D2-D07459C8802D}
+	EndGlobalSection
+EndGlobal

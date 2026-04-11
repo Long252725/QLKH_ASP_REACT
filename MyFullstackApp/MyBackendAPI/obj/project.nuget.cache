@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "SxRQOcVlwWg=",
+  "success": true,
+  "projectFilePath": "/Users/ltrang/Documents/cty/aspDotNet+Reacjs/MyFullstackApp/MyBackendAPI/MyBackendAPI.csproj",
+  "expectedPackageFiles": [
+    "/Users/ltrang/.nuget/packages/dnsclient/1.6.1/dnsclient.1.6.1.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/microsoft.aspnetcore.openapi/10.0.5/microsoft.aspnetcore.openapi.10.0.5.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/mongodb.bson/3.7.1/mongodb.bson.3.7.1.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/mongodb.driver/3.7.1/mongodb.driver.3.7.1.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/sharpcompress/0.30.1/sharpcompress.0.30.1.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/snappier/1.0.0/snappier.1.0.0.nupkg.sha512",
+    "/Users/ltrang/.nuget/packages/zstdsharp.port/0.7.3/zstdsharp.port.0.7.3.nupkg.sha512"
+  ],
+  "logs": []
+}
