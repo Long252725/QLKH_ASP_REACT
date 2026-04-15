@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Bson;
+
 namespace MyBackendAPI.Controllers;
 
 
@@ -31,25 +32,56 @@ public class FormController : ControllerBase
         }
     }
     [HttpPost("search")]
-public async Task<IActionResult> SearchCustomers([FromBody] SearchRequest request) // Dùng [FromBody]
+public async Task<IActionResult> SearchCustomers([FromBody] SearchRequest request)
 {
     try
     {
-        string name = request.Name; // Lấy name từ object request
+        // 1. Khởi tạo filter trống (mặc định lấy tất cả)
+        var builder = Builders<CustomerModel>.Filter;
+        var filter = builder.Empty;
+        Console.WriteLine($"Search Request: {request}");
 
-        if (string.IsNullOrWhiteSpace(name))
+        // 2. Lọc theo Tên (Regex) nếu có
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
-            return Ok(new { data = new List<CustomerModel>() });
+            filter &= builder.Regex(c => c.HoTenDayDu, new BsonRegularExpression(request.Name, "i"));
         }
 
-        var filter = Builders<CustomerModel>.Filter.Regex(
-            c => c.HoTenDayDu, 
-            new BsonRegularExpression(name, "i")
-        );
+        // 3. Lọc theo Giới tính (khớp chính xác)
+        if (!string.IsNullOrWhiteSpace(request.Gender))
+        {
+            filter &= builder.Eq("Gender", request.Gender); // "GioiTinh" là tên field trong DB
+        }
 
-        var results = await _customerCollection.Find(filter).Limit(10).ToListAsync();
+        // 4. Lọc theo Quê quán
+        if (!string.IsNullOrWhiteSpace(request.ProvinceId))
+        {
+            filter &= builder.Eq("ProvinceId", request.ProvinceId); 
+        }
 
-        return Ok(new { data = results });
+        // 5. Lọc theo Ngày sinh
+        if (!string.IsNullOrWhiteSpace(request.Dob))
+        {
+            filter &= builder.Eq("DateOfBirth", request.Dob);
+        }
+
+        // 6. Thực thi truy vấn với Phân trang
+        var totalCustomers = await _customerCollection.CountDocumentsAsync(filter);
+        
+        var results = await _customerCollection
+            .Find(filter)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Limit(request.PageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            total = totalCustomers,
+            page = request.Page,
+            pageSize = request.PageSize,
+            totalPages = (int)Math.Ceiling((double)totalCustomers / request.PageSize),
+            data = results
+        });
     }
     catch (Exception ex)
     {
@@ -180,8 +212,19 @@ public class CustomerModel
     public string Province { get; set; }
     public string District { get; set; }
     public string Ward { get; set; }
+    public string ProvinceId { get; set; }
+    public string DistrictId { get; set; }
+    public string WardId { get; set; }
 }
 public class SearchRequest
 {
     public string Name { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    
+    // Thêm các trường lọc bổ sung
+    public string? Gender { get; set; }
+    public string? ProvinceId { get; set; }
+    public string? Dob { get; set; } 
+
 }

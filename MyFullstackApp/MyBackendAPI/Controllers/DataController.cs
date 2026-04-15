@@ -9,8 +9,7 @@ public class DataController : ControllerBase
     [HttpGet] // Định nghĩa đây là phương thức GET
     public IActionResult GetData()
     {
-        var result = new { Message = "Hello từ Controller xịn xò!" };
-        return Ok(result); // Trả về Status Code 200 và dữ liệu JSON
+        return Ok(new { message = "Hello!" });
     }
 
     [HttpGet("test")] // Route sẽ là: api/data/test

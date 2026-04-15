@@ -10,20 +10,117 @@ const List = (url) => {
     const [isLoading, setIsLoading] = useState(false)
     const [showAlert, setShowAlert] = useState(false)
     const [confirmDelete, setConfirmDelete] = useState(false)
+    const [searchTerm, setSearchTerm] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [currentPageSearch, setCurrentPageSearch] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
+    const [isSearching, setIsSearching] = useState(false);
+    const [totalPagesSearch, setTotalPagesSearch] = useState(0);
+    const [showFilter, setShowFilter] = useState(true);   
+    const [provinces, setProvinces] = useState([]);
+    const [objectFilter, setObjectFilter] = useState({
+        provinceId: '',
+        gender: '',
+        dob: ''
+    });
+    // --- CSS Styles cơ bản ---
     const pageSize = 10;
     const fetchCustomer = useCallback((page) => {
     fetch(`${url.url}/api/form/list?page=${page}&pageSize=${pageSize}`)
         .then(res => res.json())
         .then(res => {
+            console.log(res.data)
             const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
             setCustomers(updatedData);
             setTotalPages(res.totalPages);
             console.log('Total pages:', res.totalPages);
         });
-}, [url]); // Chỉ tạo lại hàm nếu currentPage thay đổi
+}, [url]);
+
+    useEffect(() => {
+            fetch('https://provinces.open-api.vn/api/v2/p/?depth=2')
+                .then(res => res.json())
+                .then(datas => {
+                    setProvinces(datas);
+                });
+        }, []);
+
+    const formatDate = (dateString) => {
+        return dateString.split('-').reverse().join('-');
+    };
+    const handleLoc = () => {
+        console.log('Loc');
+        setShowFilter(!showFilter);
+    };
+    const handleInputChange = (e) => {
+        console.log('Input change', e.target.name, e.target.value);
+        if(e.target.name == 'province') {
+            console.log('Province change', e.target.value);
+            setObjectFilter({...objectFilter, provinceId: e.target.value});
+        } else if (e.target.name == 'gender') {
+            console.log('Gender change', e.target.value);
+            setObjectFilter({...objectFilter, gender: e.target.value});
+        } else if (e.target.name == 'dob') {
+            console.log('DOB change', e.target.value);
+            setObjectFilter({...objectFilter, dob: e.target.value});
+        }
+    };
+    const applyFilter = () => {
+        console.log('Apply filter', objectFilter);
+        // Gọi API search với objectFilter
+        fetchSearchData();
+    };
+    const resetFilter = () => {
+        console.log('Reset filter');
+
+        const emptyFilter = {
+            provinceId: '',
+            gender: '',
+            dob: ''
+        };
+        setObjectFilter(emptyFilter);
+        fetchSearchDataWithFilter(emptyFilter);
+    };
+
+const fetchSearchData = () => {
+    fetchSearchDataWithFilter(objectFilter);
+};
+
+const fetchSearchDataWithFilter = (filter) => {
+    setIsLoading(true)
+    fetch(`${url.url}/api/form/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            name: searchTerm,
+            page: currentPageSearch, // Luôn lấy giá trị mới nhất từ state
+            pageSize: pageSize,
+            ...filter
+        }),
+    })
+    .then(res => res.json())
+    .then(res => {
+        console.log(res.data)
+        const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
+        setCustomers(updatedData);
+        setTotalPagesSearch(res.totalPages);
+        setIsLoading(false)
+        setShowSucess(true);
+        setTimeout(()=> {
+            setShowSucess(false)   
+        }, 3000)
+    })
+    .catch(error => console.error('Search error:', error));
+};
+useEffect(() => {
+    if (isSearching && searchTerm !== "") {
+        fetchSearchData();
+    }
+}, [currentPageSearch, isSearching]); 
+
+
+// Chỉ tạo lại hàm nếu currentPage thay đổi
         useEffect(() => {
             // Gọi API kèm theo tham số page
             fetchCustomer(currentPage);
@@ -48,37 +145,34 @@ const List = (url) => {
             setConfirmDelete(false);
             setTimeout(() => {
                 setShowAlert(false);
-            }, 1000);
+            }, 3000);
             return;
         }
         
     }
     const handleOnChangeSearch = (e) => {
-    if(e.target.value === "") {
-        fetchCustomer(currentPage);
-        return;
+        setSearchTerm(e.target.value);
     }
-        fetch(`${url.url}/api/form/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: e.target.value }) // Gửi thẳng giá trị từ State
-    })
-    .then(res => res.json())
-    .then(res => {
-        if (res.data.length === 0) {
-            setCustomers(res.data);
-        } else {
-            setCustomers(res.data);
-        }
-    })
-    .catch(err => console.error(err));
 
+    const handleSearch = () => {
+    if (searchTerm === "") {
+        setIsSearching(false);
+        setCurrentPage(1); // Reset về trang 1 của danh sách thường
+        fetchCustomer(1);
+    } else {
+        setIsSearching(true);
+        setCurrentPageSearch(1); // QUAN TRỌNG: Reset về trang 1 khi tìm mới
+        // Nếu trang đang là 1 sẵn rồi, useEffect sẽ không tự trigger, 
+        // nên ta cần gọi trực tiếp hoặc đảm bảo logic trigger đúng.
+        fetchSearchData(); 
     }
+};
 
     const handleDeleteSelected = () => {
         setConfirmDelete(false);
         const selectedIds = customers.filter(c => c.isChecked).map(c => c.id);
         setIsLoading(true);
+        
         console.log('Xóa các khách hàng có ID:', selectedIds);
         // Gọi API xóa ở đây
         fetch(`${url.url}/api/form/delete`, {
@@ -95,20 +189,24 @@ const List = (url) => {
             fetchCustomer(currentPage);
             console.log(totalPages)
             // Hiển thị thông báo thành công
-            
+                setShowSucess(true);
+                setIsLoading(false);
             setTimeout(() => {
                 setShowSucess(false);
-            }, 1000);
+            }, 3000);
         })
         .catch(error => {
             console.error(error);
             setShowFail(true);
             setTimeout(() => {
-                setShowFail(false);
+                setIsLoading(false);
             }, 1000);
+            setTimeout(() => {
+                setShowFail(false);
+            }, 3000);
         })
         .finally(()=> {
-            setIsLoading(false);
+            
         })
     };
     const handleEdit = (id) => {
@@ -187,7 +285,7 @@ const List = (url) => {
                             <input 
                                 type="text" 
                                 id="searchInput"
-                                // value={searchTerm} // Gắn giá trị vào State\
+                                value={searchTerm} // Gắn giá trị vào State\
                                 onChange={handleOnChangeSearch}
                                 // onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                                 className="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm placeholder-slate-400
@@ -197,13 +295,65 @@ const List = (url) => {
                             />
                         </div>
 
+                        <button id="btnSearch" onClick={handleSearch} className= "w-24 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer">Tìm</button>
+                        <button id="btnLoc" onClick={handleLoc} className= "w-24 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer">Lọc</button>
                         <button id="btnDeleteSelected" onClick={handleConfirmDelete} className= "w-24 font-bold bg-red-500 p-2 rounded hover:cursor-pointer">Xoá</button>
                         <a href="/form">
                             <button id="themBtn" className="w-24 bg-green-500 font-bold p-2 rounded hover:cursor-pointer">Thêm</button>
                         </a>
+                        
                     </div>
+                    {/* Filter Box */}
+                        {showFilter && (
+                        <div className="border absolute top-20 right-0 border-slate-300 p-4 mt-4 rounded-lg bg-slate-50 w-80 shadow-sm">
+                        <div className="mb-4 flex justify-between">
+                            <label>Ngày sinh:</label>
+                            <input type="date" name="dob" 
+                            value={objectFilter.dob}
+                             onChange={handleInputChange}
+                              />
+                        </div>
+
+                        <div className="mb-4 flex justify-between">
+                            <label>Giới tính:</label>
+                            <select name="gender" 
+                            value={objectFilter.gender} 
+                            onChange={handleInputChange}
+                            >
+                            <option value="">Tất cả</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-4 flex justify-between">
+                            <label>Quê quán:</label>
+                            <select name="province" 
+                            value={objectFilter.provinceId}
+                             onChange={handleInputChange}
+                             >
+                             <option value="">Tất cả</option>
+                            {provinces.map(province => (
+                                <option key={province.code} value={province.code}>{province.name}</option>
+                            ))}
+                            </select>
+                        </div>
+
+                        <div className="mt-4">
+                            <button 
+                            onClick={applyFilter} 
+                            
+                            className="bg-green-500 text-white px-4 py-2 rounded mr-2 hover:cursor-pointer">Áp dụng</button>
+                            <button 
+                            onClick={resetFilter} 
+                            
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:cursor-pointer">Xóa lọc</button>
+                        </div>
+                        </div>
+                    )}
                     <div className="w-full bg-yellow-500 flex flex-col items-center">
-                        <div className="w-full bg-[#2563eb] text-white font-bold text-[12px] uppercase tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_2fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
+                        <div className="w-full bg-[#2563eb] text-white font-bold text-[12px] uppercase tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
                             <input type="checkbox" checked={checkAll} onChange={handleCheckAll}/>
                             <div className="name">Họ Tên</div>
                             <div className="sdt">SDT</div>
@@ -229,7 +379,7 @@ const List = (url) => {
                         <div className="w-full">
                         {customers.map(customer => {
                             return (
-                                <div className="bg-white text-black font-bold text-[12px] tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_2fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
+                                <div className="bg-white text-black font-bold text-[12px] tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
                                 <input type="checkbox"
                                         checked={customer.isChecked || false} 
                                         onChange={() => handleCheckItem(customer.id)}
@@ -237,7 +387,7 @@ const List = (url) => {
                                 <div className="name">{customer.hoTenDayDu}</div>
                                 <div className="sdt">{customer.sdt}</div>
                                 <div className="email">{customer.email}</div>
-                                <div className="dateOfBirth">{customer.dateOfBirth}</div>
+                                <div className="dateOfBirth">{formatDate(customer.dateOfBirth)}</div>
                                 <div className="gender">{customer.gender}</div>
                                 <div className="address">{customer.province} - {customer.district} - {customer.ward}</div>
                                 <button className="bg-yellow-500 text-white px-2 py-1 rounded hover:cursor-pointer hover:bg-yellow-600" onClick={() => handleEdit(customer.id)}>Sửa</button>
@@ -248,7 +398,29 @@ const List = (url) => {
                         </div>
                     </div>
                     <div className="flex gap-2 mt-4">
+                    {isSearching ? (
+                      <>
+                        <button 
+                        disabled={currentPageSearch == 1}
+                        onClick={() => setCurrentPageSearch(prev => prev - 1)}
+                        className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
+                    >
+                        Trước2
+                    </button>
+
+                    <span className="py-2">{totalPagesSearch > 0 ? `Trang ${currentPageSearch} / ${totalPagesSearch}` : "Không có dữ liệu"}</span>
+
                     <button 
+                        disabled={currentPageSearch == totalPagesSearch || totalPagesSearch < 1}
+                        onClick={() => setCurrentPageSearch(prev => prev + 1)}
+                        className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
+                    >
+                        Sau
+                    </button>
+                      </>   
+                    ) : (
+                        <>
+                            <button 
                         disabled={currentPage == 1}
                         onClick={() => setCurrentPage(prev => prev - 1)}
                         className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
@@ -265,6 +437,8 @@ const List = (url) => {
                     >
                         Sau
                     </button>
+                        </>
+                    )}
                 </div>
 
             </div>

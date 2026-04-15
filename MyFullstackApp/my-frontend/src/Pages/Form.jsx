@@ -14,11 +14,15 @@ const Form = (url) => {
         province: '',
         district: '',
         ward: '',
-        hoTenDayDu: ''
+        hoTenDayDu: '',
+        provinceId: '',
+        districtId: '',
+        wardId: ''
     });
     const [isLoading, setIsLoading] = useState(false);
     const [showSucess, setShowSucess] = useState(false);
     const [showFail, setShowFail] = useState(false);
+    const [badInput, setBadInput] = useState(false);
 
     const [errors, setErrors] = useState({}); // Lưu lỗi dưới dạng { ho: true, email: true }
     // 2. State riêng cho danh sách Tỉnh/Huyện/Xã từ API
@@ -37,7 +41,18 @@ const Form = (url) => {
                 ...errors,
                 [e.target.name]: false
             });
-        const {name, value} = e.target;
+            
+        let name = e.target.name;
+        if (name == 'ho' || name == 'ten' || name == 'tenDem') {
+            e.target.value = e.target.value.replace(/[^A-Za-zÀ-ỹ\s]/g, "");
+            e.target.maxLength = 20;
+            e.target.value = e.target.value.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+        if (name == 'sdt') {
+            e.target.value = e.target.value.replace(/[^0-9]/g, "");
+            e.target.maxLength = 10;
+        }
+        let value = e.target.value;
         console.log(value)
 
         setFormData({
@@ -45,44 +60,144 @@ const Form = (url) => {
             [name]: value
         });
     }
+    const handleBlur = (e) => {
+        if (e.target.name == 'dateOfBirth') {
+            if (e.target.validity.badInput) {
+            setBadInput(true);
+            setErrors({
+                ...errors,
+                dateOfBirth: "Ngày sinh không hợp lệ"
+            });
+            } else if (new Date(e.target.value) >= new Date()) {
+                setBadInput(false);
+                setErrors({
+                    ...errors,
+                    dateOfBirth: "Ngày sinh không được lớn hơn ngày hiện tại"
+                });
+            } else {
+                setBadInput(false);
+                setErrors({
+                    ...errors,
+                    dateOfBirth: ""
+                });
+            }
+        } else if (e.target.name == 'sdt') {
+
+            if (!/^0/.test(e.target.value) && e.target.value.length > 0) {
+                setErrors({
+                    ...errors,
+                    sdt: "SDT cần bắt đầu bằng 0"
+                });
+            } else if (!/^0[0-9]{9}$/.test(e.target.value) && e.target.value.length > 0) {
+                setErrors({
+                    ...errors,
+                    sdt: "SDT cần đủ 10 chữ số"
+                });
+            } else {
+                setErrors({
+                    ...errors,
+                    sdt: ""
+                });
+            }
+        } else if (e.target.name == 'email') {
+            if (e.target.value.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|vn|net)$/.test(e.target.value)) {
+                setErrors({
+                    ...errors,
+                    email: "Email không đúng định dạng"
+                });
+            } else {
+                setErrors({
+                    ...errors,
+                    email: ""
+                });
+            }
+        } else if (e.target.name == 'ho' || e.target.name == 'ten') {
+            if (!e.target.value) {
+                setErrors({
+                    ...errors,
+                    [e.target.name]: "Họ và tên không được để trống"
+                });
+            } else {
+                setErrors({
+                    ...errors,
+                    [e.target.name]: ""
+                });
+            }
+        }
+        
+    }
+
+    const handleFocus = (e) => {
+        console.log(e.target.name);
+    }
     const handleChangeAddress =(e) => {
-        setErrors({
+            setErrors({
                 ...errors,
                 [e.target.name]: false
             });
         const {name, value} = e.target;
-        setFormData({
-            ...formData,
-            [name]: e.target.options[e.target.selectedIndex].text
-        });
+        
 
         if (name == "province") {
-           fetch(`https://provinces.open-api.vn/api/v2/p/${value}?depth=2`)
+            setDistricts([]);
+            setWards([]);
+            setFormData({
+                ...formData,
+                provinceId: e.target.options[e.target.selectedIndex].value,
+                province: e.target.options[e.target.selectedIndex].text
+            });
+
+           if (value) {
+            fetch(`https://provinces.open-api.vn/api/v2/p/${value}?depth=2`)
             .then(res => res.json())
-            .then(data => { setDistricts(data.wards); });
+            .then(data => { 
+                setDistricts(data.wards);
+                
+            });
+           }
         } else if (name == "district") {
+            setWards([]);
+            setFormData({
+                ...formData,
+                districtId: e.target.options[e.target.selectedIndex].value,
+                district: e.target.options[e.target.selectedIndex].text
+            });
+            if (value) {
             fetch(`https://provinces.open-api.vn/api/v2/w/${value}/to-legacies/`)
             .then(res => res.json())
             .then(data => { setWards(data); });
+            }
+        } else if (name == "ward") {
+         setFormData({
+                ...formData,
+                wardId: e.target.options[e.target.selectedIndex].value,
+                ward: e.target.options[e.target.selectedIndex].text
+            });
         }
 
     }
 
     const validateForm = () => {
     let newErrors = {};
-    
+    console.log(formData.dateOfBirth);
     const dateObj = new Date(formData.dateOfBirth);
     const currentDate = new Date();
+    // if (!formData.dateOfBirth) {
+    //     newErrors.dateOfBirth = "Vui lòng chọn ngày sinh";
+    // }
+    if(badInput && !formData.dateOfBirth) {
+        newErrors.dateOfBirth = "Ngày sinh không hợp lệ";
+    }
     if(dateObj > currentDate) {
         newErrors.dateOfBirth = "Ngày sinh không được lớn hơn ngày hiện tại";
     }
     if (!formData.ho.trim()) {newErrors.ho = "Vui lòng nhập họ"} else if (formData.ho.trim().includes(' ')) {newErrors.ho = "Họ không được chứa khoảng trắng"};
     if (!formData.ten.trim()) {newErrors.ten = "Vui lòng nhập tên"} else if (formData.ten.trim().includes('.')) {newErrors.ten = "Tên không được chứa ký tự đặc biệt"}; 
-        
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (formData.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|vn|net)$/.test(formData.email)) {
         newErrors.email = "Email không đúng định dạng";
     }
-    if (formData.sdt && !/^0[0-9]{9}$/.test(formData.sdt)) newErrors.sdt = "Sai định dạng";
+    if (formData.sdt && !/^0[0-9]{9}$/.test(formData.sdt)) newErrors.sdt = "SDT cần đủ 10 chữ số";
+    if (formData.sdt && !/^0/.test(formData.sdt)) newErrors.sdt = "SDT cần bắt đầu phải bằng 0";
 
     setErrors(newErrors);
     
@@ -97,15 +212,20 @@ const Form = (url) => {
         let dataBefore = {
             ...formData
         }
-        let tenArray = dataBefore.ten.trim().split(' ');
+        let tenArray = dataBefore.ten.trim().split(/\s+/);
+        let ho2 = dataBefore.ho.trim();
+        let tenDem2 = dataBefore.tenDem.trim();
+        let ten2 = tenArray.join(' ');
+        let hoTenDayDu2 = tenDem2 ? `${ho2} ${tenDem2} ${tenArray.join(' ')}` : `${ho2} ${tenArray.join(' ')}`;
+        console.log('tenArray', tenArray);
         const finalData = {
             ...formData,
-            ho: formData.ho.trim(),
-            ten: tenArray.join(' '),
-            tenDem: formData.tenDem.trim(),
-            hoTenDayDu: `${formData.ho.trim()} ${formData.tenDem.trim()} ${tenArray.join(' ')}`
+            ho: ho2,
+            ten: ten2,
+            tenDem: tenDem2,
+            hoTenDayDu: hoTenDayDu2
         };
-        console.log("Form submitted:", formData);
+        console.log("Form submitted:", finalData);
         console.log("URL:", url);
         fetch(`${url.url}/api/form/add`, {
             method: 'POST',
@@ -191,7 +311,6 @@ const Form = (url) => {
                         </div>
                         <h2 className="text-3xl font-extrabold text-white tracking-tight">Đăng Ký Khách Hàng</h2>
                         <p className="text-blue-100 mt-2 text-sm">Vui lòng điền đầy đủ thông tin bên dưới để khởi tạo tài khoản mới</p>
-                        <p className="text-blue-100 mt-2 text-sm">Vui lòng điền đầy đủ thông tin bên dưới để khởi tạo tài khoản mới</p>
                     </div>
 
                     <div className="p-8 sm:p-10 space-y-8">
@@ -204,10 +323,14 @@ const Form = (url) => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="group">
-                                <label htmlFor="ho" className={`${errors.ho ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold mb-2 group-focus-within:text-blue-600 transition-colors`}>Họ <span className="text-red-500">*</span></label>
-                                    <input type="text" id="ho" name="ho" onChange={handleChange} value={formData.ho} 
+                                <label htmlFor="ho" className={`${errors.ho ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold mb-2 group-focus-within:text-blue-600 transition-colors`}>Họ<span className="text-red-500">*</span></label>
+                                    <input 
+                                    type="text" 
+                                    onFocus={handleFocus}
+                                    onBlur={handleBlur}
+                                    id="ho" name="ho" onChange={handleChange} value={formData.ho} 
                                         className={`${errors.ho 
-                                                    ? 'border-red-500 bg-red-50 focus:ring-red-100' 
+                                                    ? 'border-red-500 bg-red-50' 
                                                     : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'
                                                 } w-full border p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400`}
                                         placeholder="Ví dụ: Nguyễn"/>
@@ -216,15 +339,21 @@ const Form = (url) => {
                                 </div>
                                 <div className="group">
                                     <label htmlFor="ten" className={`text-slate-700 block text-sm font-bold mb-2 group-focus-within:text-blue-600 transition-colors`}>Tên đệm</label>
-                                    <input type="text" id="tenDem" name="tenDem" onChange={handleChange} value={formData.tenDem} 
+                                    <input type="text"
+                                    onFocus={handleFocus}
+                                    
+                                     id="tenDem" name="tenDem" onChange={handleChange} value={formData.tenDem} 
                                         className={` w-full border p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400`} 
                                         placeholder="Ví dụ: Thị"/>
                                 </div>
                                 <div className="group">
                                     <label htmlFor="ten" className={`${errors.ten ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold mb-2 group-focus-within:text-blue-600 transition-colors`}>Tên<span className="text-red-500">*</span></label>
-                                    <input type="text" id="ten" name="ten" onChange={handleChange} value={formData.ten} 
+                                    <input type="text" 
+                                    onFocus={handleFocus}
+                                    onBlur={handleBlur}
+                                     id="ten" name="ten" onChange={handleChange} value={formData.ten} 
                                         className={`${errors.ten 
-                                                    ? 'border-red-500 bg-red-50 focus:ring-red-100' 
+                                                    ? 'border-red-500 bg-red-50' 
                                                     : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'
                                                 } w-full border p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400`} 
                                         placeholder="Ví dụ: Văn A"/>
@@ -243,25 +372,34 @@ const Form = (url) => {
                                 <div className="group">
                                     <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-blue-600 transition-colors" >Email</label>
                                     <div className="relative">
-                                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                        <div className='flex items-center '>
+                                            <span className={`absolute ${errors.email? 'mb-4.5' : ''} flex left-0 justify-center items-center inset-y-0 pl-3 text-slate-400`}>
                                             <i className="fa-solid fa-at"></i>
                                         </span>
-                                        <input type="email" id="email" name="email" onChange={handleChange}  values={formData.email}
-                                            className={` ${errors.email ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} w-full border pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white`} 
+                                        <input type="email" 
+                                        maxLength={30}
+                                        onBlur={handleBlur}
+                                        onFocus={handleFocus} id="email" name="email" onChange={handleChange}  values={formData.email}
+                                            className={` ${errors.email ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'}  w-full border pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100  outline-none transition-all bg-slate-50/50 focus:bg-white`} 
                                         />
+                                        </div>
                                         {errors.email && <p className="text-red-500 text-xs mt-1 italic">{errors.email}</p>}
 
                                     </div>
                                 </div>
                                 <div className="group">
-                                    <label htmlFor="sdt" className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-blue-600 transition-colors">Số điện thoại</label>
+                                    <label htmlFor="sdt" className={`${errors.sdt ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold  mb-2  transition-colors`}>Số điện thoại</label>
                                     <div className="relative">
-                                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                                            <i className="fa-solid fa-phone"></i>
-                                        </span>
-                                        <input type="text" id="sdt" name="sdt"  onChange={handleChange} values={formData.sdt}
-                                            className={`w-full border ${errors.sdt ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white`} 
-                                        />
+                                        <div className='flex items-center '>
+                                            <span className={`absolute ${errors.sdt ? 'mb-4.5' : ''} flex left-0 justify-center items-center inset-y-0 pl-3 text-slate-400`}>
+                                                <i className="fa-solid fa-phone"></i>
+                                            </span>
+                                            <input type="text" 
+                                            onBlur={handleBlur}
+                                            onFocus={handleFocus} id="sdt" name="sdt"  onChange={handleChange} values={formData.sdt}
+                                                className={`w-full border ${errors.sdt ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all bg-slate-50/50 focus:bg-white`} 
+                                            />
+                                        </div>
                                         {errors.sdt && <p className="text-red-500 text-xs mt-1 italic">{errors.sdt}</p>}
                                     </div>
                                 </div>
@@ -271,14 +409,18 @@ const Form = (url) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="group">
                                 <label htmlFor="dateOfBirth" className="block text-sm font-bold text-slate-700 mb-2">Ngày sinh</label>
-                                <input type="date" id="dateOfBirth" name="dateOfBirth" onChange={handleChange} values={formData.dateOfBirth}
-                                    className={"w-full border " + (errors.dateOfBirth ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500') + " p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white"}
+                                <input type="date" id="dateOfBirth" name="dateOfBirth" 
+                                onBlur={handleBlur}
+                                onChange={handleChange} values={formData.dateOfBirth}
+                                    className={"w-full border " + (errors.dateOfBirth ? 'border-red-500 bg-red-50 focus:ring-red-100'  : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500') + " p-3 rounded-xl focus:ring-4 outline-none transition-all bg-slate-50/50 focus:bg-white"}
                                 />
                                 {errors.dateOfBirth && <p className="text-red-500 text-xs mt-1 italic">{errors.dateOfBirth}</p>}
                             </div>
                             <div className="group">
                                 <label htmlFor="gender" className="block text-sm font-bold text-slate-700 mb-2">Giới tính</label>
-                                <select id="gender" name="gender"  onChange={handleChange} values={formData.gender}
+                                <select id="gender" name="gender" 
+                                 
+                                 onChange={handleChange} values={formData.gender}
                                     className="w-full border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer">
                                     <option value="Nam">Nam</option>
                                     <option value="Nữ">Nữ</option>
@@ -290,28 +432,29 @@ const Form = (url) => {
                         <div className="space-y-4">
                             <label className="block text-sm font-bold text-slate-700">Quê quán (Địa chỉ thường trú)</label>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="queQuan">
-                                <select name="province"  id="province" onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
+                                <select name="province"
+                                   id="province" 
+                                   onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none pr-1 transition-all cursor-pointer">
+                                    <option value="">Chọn tỉnh/Thành phố</option>
                                     {provinces.map((province) => (
                                         <option value={province.code} key={province.code}>{province.name}</option>
                                     ))}
                                 </select>
-                                <select name="district" id="district" onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
-                                {districts.length > 0 ? (
+                                <select name="district" id="district" 
+                                onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
+                                <option value="">Chọn quận/huyện</option>
+                                {(
                                     districts.map((district) => (
                                         <option value={district.code} key={district.code}>{district.name}</option>
                                     ))
-                                ) : (
-                                    <option value="">Chọn quận/huyện</option>
                                 )}
                                 </select>
-                                <select id="ward" name="ward" onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
-                                {wards.length > 0 ? (
-                                    wards.map((ward) => (
-                                        <option value={ward.code} key={ward.code}>{ward.name}</option>
-                                    ))
-                                ) : (
-                                    <option value="">Chọn phường/xã</option>
-                                )}
+                                <select id="ward" name="ward" 
+                                onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
+                                <option value="">Chọn phường/xã</option>
+                                {wards.map((ward) => (
+                                    <option value={ward.code} key={ward.code}>{ward.name}</option>
+                                ))}
                                 </select>
                             </div>
                         </div>

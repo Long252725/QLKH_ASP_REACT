@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/", // Trang chủ: localhost:5173/
-        element: <Home />,
+        element: <Home url={URL} />,
       },
       {
         path: "quiz/:id", // Trang chi tiết: localhost:5173/quiz/1
