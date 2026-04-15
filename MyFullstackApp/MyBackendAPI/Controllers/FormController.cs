@@ -64,6 +64,16 @@ public async Task<IActionResult> SearchCustomers([FromBody] SearchRequest reques
         {
             filter &= builder.Eq("DateOfBirth", request.Dob);
         }
+        var sortBuilder = Builders<CustomerModel>.Sort;
+        SortDefinition<CustomerModel> sort;
+        if (request.IsUpName == true)
+        {
+            sort = sortBuilder.Ascending("HoTenDayDu");
+        }
+        else
+        {
+            sort = sortBuilder.Descending("HoTenDayDu");
+        }
 
         // 6. Thực thi truy vấn với Phân trang
         var totalCustomers = await _customerCollection.CountDocumentsAsync(filter);
@@ -72,6 +82,7 @@ public async Task<IActionResult> SearchCustomers([FromBody] SearchRequest reques
             .Find(filter)
             .Skip((request.Page - 1) * request.PageSize)
             .Limit(request.PageSize)
+            .Sort(sort)
             .ToListAsync();
 
         return Ok(new
@@ -89,17 +100,28 @@ public async Task<IActionResult> SearchCustomers([FromBody] SearchRequest reques
     }
 }
     [HttpGet("list")]
-    public async Task<IActionResult> GetPagedCustomers(int page = 1, int pageSize = 10)
+public async Task<IActionResult> GetPagedCustomers(int page = 1, int pageSize = 10, bool isUpName = true)
 {
     try
     {
-        // 1. Đếm tổng số lượng khách hàng để React biết có bao nhiêu trang
-        long totalCustomers = await _customerCollection.CountDocumentsAsync(_ => true);
+        // 1. Tạo Filter trống (lấy tất cả)
+        var filter = Builders<CustomerModel>.Filter.Empty;
 
-        // 2. Lấy dữ liệu theo trang
-        var customers = await _customerCollection.Find(_ => true)
-            .Skip((page - 1) * pageSize) // Bỏ qua các mục của trang trước
-            .Limit(pageSize)              // Chỉ lấy đúng số lượng pageSize
+        // 2. Xử lý logic Sắp xếp (Sort)
+        // Nếu isUpName = true => Tăng dần (A-Z)
+        // Nếu isUpName = false => Giảm dần (Z-A)
+        var sort = isUpName 
+            ? Builders<CustomerModel>.Sort.Ascending(c => c.HoTenDayDu) 
+            : Builders<CustomerModel>.Sort.Descending(c => c.HoTenDayDu);
+
+        // 3. Đếm tổng số lượng
+        long totalCustomers = await _customerCollection.CountDocumentsAsync(filter);
+
+        // 4. Truy vấn dữ liệu với Sort, Skip và Limit
+        var customers = await _customerCollection.Find(filter)
+            .Sort(sort)                  // THÊM SORT VÀO ĐÂY
+            .Skip((page - 1) * pageSize) 
+            .Limit(pageSize)              
             .ToListAsync();
 
         return Ok(new
@@ -107,6 +129,7 @@ public async Task<IActionResult> SearchCustomers([FromBody] SearchRequest reques
             total = totalCustomers,
             page = page,
             pageSize = pageSize,
+            isUpName = isUpName, // Trả về để frontend đồng bộ UI
             totalPages = (int)Math.Ceiling((double)totalCustomers / pageSize),
             data = customers
         });
@@ -226,5 +249,6 @@ public class SearchRequest
     public string? Gender { get; set; }
     public string? ProvinceId { get; set; }
     public string? Dob { get; set; } 
+    public bool? IsUpName { get; set; }
 
 }

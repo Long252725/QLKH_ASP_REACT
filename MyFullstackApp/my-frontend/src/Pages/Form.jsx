@@ -379,6 +379,7 @@ const Form = (url) => {
                                         <input type="email" 
                                         maxLength={30}
                                         onBlur={handleBlur}
+                                        placeholder="example@gmail.com"
                                         onFocus={handleFocus} id="email" name="email" onChange={handleChange}  values={formData.email}
                                             className={` ${errors.email ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'}  w-full border pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100  outline-none transition-all bg-slate-50/50 focus:bg-white`} 
                                         />
@@ -396,6 +397,7 @@ const Form = (url) => {
                                             </span>
                                             <input type="text" 
                                             onBlur={handleBlur}
+                                            placeholder="Nhập số điện thoại"
                                             onFocus={handleFocus} id="sdt" name="sdt"  onChange={handleChange} values={formData.sdt}
                                                 className={`w-full border ${errors.sdt ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all bg-slate-50/50 focus:bg-white`} 
                                             />
@@ -475,7 +477,6 @@ const Form = (url) => {
                     </div>
                 </div>
                 
-                <p className="text-center text-slate-400 text-xs mt-8">© 2026 Quản lý khách hàng - KMA IT Developer</p>
             </div>
         </div>
         </>

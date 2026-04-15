@@ -17,17 +17,20 @@ const List = (url) => {
     const [totalPages, setTotalPages] = useState(0);
     const [isSearching, setIsSearching] = useState(false);
     const [totalPagesSearch, setTotalPagesSearch] = useState(0);
-    const [showFilter, setShowFilter] = useState(true);   
+    const [showFilter, setShowFilter] = useState(false);   
     const [provinces, setProvinces] = useState([]);
     const [objectFilter, setObjectFilter] = useState({
         provinceId: '',
         gender: '',
         dob: ''
     });
+    const [isUpName, setIsUpName] = useState(true);
     // --- CSS Styles cơ bản ---
     const pageSize = 10;
     const fetchCustomer = useCallback((page) => {
-    fetch(`${url.url}/api/form/list?page=${page}&pageSize=${pageSize}`)
+        console.log('isUpName3', isUpName)
+    if(!isSearching) {
+        fetch(`${url.url}/api/form/list?page=${page}&pageSize=${pageSize}&isUpName=${isUpName}`)
         .then(res => res.json())
         .then(res => {
             console.log(res.data)
@@ -36,8 +39,9 @@ const List = (url) => {
             setTotalPages(res.totalPages);
             console.log('Total pages:', res.totalPages);
         });
-}, [url]);
-
+    }
+}, [url, isUpName, isSearching]);
+    
     useEffect(() => {
             fetch('https://provinces.open-api.vn/api/v2/p/?depth=2')
                 .then(res => res.json())
@@ -69,11 +73,12 @@ const List = (url) => {
     const applyFilter = () => {
         console.log('Apply filter', objectFilter);
         // Gọi API search với objectFilter
+        setCurrentPageSearch(1); 
+        setIsSearching(true);
         fetchSearchData();
     };
     const resetFilter = () => {
         console.log('Reset filter');
-
         const emptyFilter = {
             provinceId: '',
             gender: '',
@@ -81,13 +86,19 @@ const List = (url) => {
         };
         setObjectFilter(emptyFilter);
         fetchSearchDataWithFilter(emptyFilter);
+        setIsSearching(false);
+
     };
 
 const fetchSearchData = () => {
     fetchSearchDataWithFilter(objectFilter);
 };
-
+useEffect(() => {
+        fetchSearchData();
+        console.log('isUpName', isUpName)
+    }, [isUpName]);
 const fetchSearchDataWithFilter = (filter) => {
+    console.log("isUpName2", isUpName)
     setIsLoading(true)
     fetch(`${url.url}/api/form/search`, {
         method: 'POST',
@@ -96,7 +107,8 @@ const fetchSearchDataWithFilter = (filter) => {
             name: searchTerm,
             page: currentPageSearch, // Luôn lấy giá trị mới nhất từ state
             pageSize: pageSize,
-            ...filter
+            ...filter,
+            isUpName: isUpName
         }),
     })
     .then(res => res.json())
@@ -104,6 +116,7 @@ const fetchSearchDataWithFilter = (filter) => {
         console.log(res.data)
         const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
         setCustomers(updatedData);
+        console.log(res.totalPages)
         setTotalPagesSearch(res.totalPages);
         setIsLoading(false)
         setShowSucess(true);
@@ -124,7 +137,7 @@ useEffect(() => {
         useEffect(() => {
             // Gọi API kèm theo tham số page
             fetchCustomer(currentPage);
-        }, [currentPage, fetchCustomer]); // Hễ currentPage thay đổi là tự động fetch lại
+        }, [currentPage, fetchCustomer, isUpName]); // Hễ currentPage thay đổi là tự động fetch lại
     // Chọn tất cả hoặc bỏ chọn tất cả
         const handleCheckAll = (e) => {
             const isChecked = e.target.checked;
@@ -291,21 +304,25 @@ useEffect(() => {
                                 className="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm placeholder-slate-400
                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                         transition-all duration-200 shadow-sm" 
-                                placeholder="Tìm kiếm khách hàng..." 
+                                placeholder="Tìm kiếm theo tên khách hàng..." 
                             />
                         </div>
 
-                        <button id="btnSearch" onClick={handleSearch} className= "w-24 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer">Tìm</button>
-                        <button id="btnLoc" onClick={handleLoc} className= "w-24 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer">Lọc</button>
-                        <button id="btnDeleteSelected" onClick={handleConfirmDelete} className= "w-24 font-bold bg-red-500 p-2 rounded hover:cursor-pointer">Xoá</button>
+                        <button id="btnSearch" onClick={handleSearch} className= "w-24 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer hover:bg-blue-800 flex items-center justify-center gap-2"><i class="fa-solid fa-magnifying-glass"></i>Tìm</button>
+                        <button id="btnLoc" onClick={handleLoc} className= "w-24 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-blue-800"><i class="fa-solid fa-filter"></i>Lọc</button>
+                        
+                        <button id="btnReload" onClick={()=> {window.location.reload()}} className= "px-3 font-bold bg-blue-500 p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-blue-800"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                        <button id="btnDeleteSelected" onClick={handleConfirmDelete} className= "w-24 font-bold bg-red-500 p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-red-800"><i class="fa-solid fa-trash"></i>Xoá</button>
                         <a href="/form">
-                            <button id="themBtn" className="w-24 bg-green-500 font-bold p-2 rounded hover:cursor-pointer">Thêm</button>
+                            <button id="themBtn" className="w-24 bg-green-500 font-bold p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-green-800"><i class="fa-solid fa-plus"></i>Thêm</button>
                         </a>
                         
                     </div>
                     {/* Filter Box */}
+                        
+                    <div className="flex w-full">
                         {showFilter && (
-                        <div className="border absolute top-20 right-0 border-slate-300 p-4 mt-4 rounded-lg bg-slate-50 w-80 shadow-sm">
+                        <div className="border sticky top-1  text-white font-bold text-[12px] uppercase tracking-[0.05em] border-slate-300 p-4 rounded-lg bg-slate-50 w-80 mr-1 h-40">
                         <div className="mb-4 flex justify-between">
                             <label>Ngày sinh:</label>
                             <input type="date" name="dob" 
@@ -328,19 +345,20 @@ useEffect(() => {
                         </div>
 
                         <div className="mb-4 flex justify-between">
-                            <label>Quê quán:</label>
+                            <label>Địa chỉ:</label>
                             <select name="province" 
                             value={objectFilter.provinceId}
                              onChange={handleInputChange}
+                             className="w-[70%] text-end"
                              >
-                             <option value="">Tất cả</option>
+                             <option value="" >Tất cả</option>
                             {provinces.map(province => (
                                 <option key={province.code} value={province.code}>{province.name}</option>
                             ))}
                             </select>
                         </div>
 
-                        <div className="mt-4">
+                        <div className="mt-4 flex w-full justify-between">
                             <button 
                             onClick={applyFilter} 
                             
@@ -352,10 +370,12 @@ useEffect(() => {
                         </div>
                         </div>
                     )}
-                    <div className="w-full bg-yellow-500 flex flex-col items-center">
-                        <div className="w-full bg-[#2563eb] text-white font-bold text-[12px] uppercase tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
+                        <div className="w-full bg-white flex flex-col items-center min-h-140 rounded ">
+                        <div className="w-full rounded-t bg-[#2563eb] text-white font-bold text-[12px] uppercase tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-3.75 items-center px-5 py-3">
                             <input type="checkbox" checked={checkAll} onChange={handleCheckAll}/>
-                            <div className="name">Họ Tên</div>
+                            <div className="name flex items-center gap-3">Họ Tên {
+                                isUpName ? <i className="fa-solid fa-arrow-up-short-wide cursor-pointer" onClick={() => setIsUpName(!isUpName)}></i> : <i class="fa-solid fa-arrow-down-wide-short cursor-pointer" onClick={() => setIsUpName(!isUpName)}></i>
+                            }</div>
                             <div className="sdt">SDT</div>
                             <div className="email">Email</div>
                             <div className="dateOfBirth">Ngày Sinh</div>
@@ -367,7 +387,7 @@ useEffect(() => {
                             {confirmDelete && (
                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                     <div className="absolute w-100 h-50 my-[-100px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black z-100 border border-blue-500 rounded flex flex-col items-center justify-around">
-                                    <div className='text-white font-bold text-lg'>Xác nhận xoá khách hàng?</div>
+                                    <div className='text-white font-bold text-lg'>Xác nhận xoá {customers.filter(c => c.isChecked).length} khách hàng?</div>
                                     <div className="flex gap-2 justify-around w-full">
                                         <button className="mt-2 w-30 rounded bg-amber-500 px-5 py-1 hover:cursor-pointer hover:bg-amber-600" onClick={() => setConfirmDelete(false)}>Huỷ</button>
                                         <button className="mt-2 w-30 rounded bg-blue-500 px-5 py-1 hover:cursor-pointer hover:bg-blue-600" onClick={handleDeleteSelected}>Xác nhận</button>
@@ -376,8 +396,8 @@ useEffect(() => {
                                 </div>
                             )}
                         </div>
-                        <div className="w-full">
-                        {customers.map(customer => {
+                        <div className="w-full border border-slate-300">
+                        {customers.length>0 ?customers.map(customer => {
                             return (
                                 <div className="bg-white text-black font-bold text-[12px] tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
                                 <input type="checkbox"
@@ -393,9 +413,10 @@ useEffect(() => {
                                 <button className="bg-yellow-500 text-white px-2 py-1 rounded hover:cursor-pointer hover:bg-yellow-600" onClick={() => handleEdit(customer.id)}>Sửa</button>
                             </div>
                             )
-                        })}
+                        }): <div className="text-center p-10">Không có dữ liệu</div>}
                             
                         </div>
+                    </div>
                     </div>
                     <div className="flex gap-2 mt-4">
                     {isSearching ? (
@@ -405,7 +426,7 @@ useEffect(() => {
                         onClick={() => setCurrentPageSearch(prev => prev - 1)}
                         className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
                     >
-                        Trước2
+                        Trước
                     </button>
 
                     <span className="py-2">{totalPagesSearch > 0 ? `Trang ${currentPageSearch} / ${totalPagesSearch}` : "Không có dữ liệu"}</span>

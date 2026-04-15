@@ -278,7 +278,7 @@ const Edit = (url) => {
                     <label className={`${errors.ho ? 'text-red-500' : 'text-slate-700'} text-sm font-semibold text-gray-700 mb-1 ${errors.ho ? 'text-red-500' : ''}`}>Họ:</label>
                     <input type="text" id="ho" name="ho"
                     onBlur={handleBlur}
-                    
+                    placeholder="Ví dụ: Nguyễn"
                      value={customer.ho} onChange={(e) => handleChange(e)}
                         className={`${errors.ho 
                                                     ? 'border-red-500 bg-red-50 focus:ring-red-100' 
@@ -291,6 +291,7 @@ const Edit = (url) => {
                     <label className={` text-sm font-semibold text-gray-700 mb-1`}>Tên đệm:</label>
                     <input type="text" id="ho" name="tenDem" 
                     value={customer.tenDem} onChange={(e) => handleChange(e)}
+                    placeholder="Ví dụ: Thị"
                         className={`'border-slate-200 focus:ring-blue-100 focus:border-blue-500' border border-gray-300 p-2.5 rounded-lg focus:ring-2 outline-none transition-all`}/>
                 </div>
 
@@ -298,6 +299,7 @@ const Edit = (url) => {
                     <label className={`${errors.ten ? 'text-red-500' : 'text-slate-700'} text-sm font-semibold text-gray-700 mb-1 ${errors.ten ? 'text-red-500' : ''}`}>Tên:</label>
                     <input type="text" id="ten" name="ten"
                     onBlur={handleBlur}
+                    placeholder="Ví dụ: Văn A"
                      value={customer.ten} onChange={(e) => handleChange(e)}
                         className={`${errors.ten 
                                                     ? 'border-red-500 bg-red-50 focus:ring-red-100' 
@@ -312,6 +314,7 @@ const Edit = (url) => {
                 <div className="flex flex-col">
                     <label className={`text-sm font-semibold text-gray-700 mb-1 ${errors.email ? 'text-red-500' : ''}`}>Email:</label>
                     <input type="email" id="email" name="email" value={customer.email} onBlur={handleBlur} onChange={handleChange}
+                        placeholder="Nhập email"
                         className={`${errors.email ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all`}
                     />
                     {errors.email && <p className="text-red-500 text-xs mt-1 italic">{errors.email}</p>}
@@ -320,6 +323,7 @@ const Edit = (url) => {
                 <div className="flex flex-col">
                     <label  className="text-sm font-semibold text-gray-700 mb-1">Số điện thoại:</label>
                     <input type="text" id="sdt" name="sdt" value={customer.sdt} onBlur={handleBlur} onChange={handleChange}
+                        placeholder="Nhập số điện thoại"
                         className={`${errors.sdt ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all`}
                     />
                     {errors.sdt && <p className="text-red-500 text-xs mt-1 italic">{errors.sdt}</p>}
