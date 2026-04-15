@@ -6,11 +6,8 @@ function Home({ url }) {
         alert("Đã bấm nút thêm Quiz!");
     };
     useEffect(() => {
-        console.log(url);
-        console.log("Home");
         fetch(`${url}/api/data`)
             .then(response => {
-                console.log(response);
                 return response.json()})
             .then(data => console.log(data))
             .catch(error => console.error(error));

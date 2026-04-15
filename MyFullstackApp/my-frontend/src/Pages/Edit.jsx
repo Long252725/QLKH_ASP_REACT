@@ -23,7 +23,6 @@ const Edit = (url) => {
         fetch(`${url.url}/api/form/edit/${id}`)
         .then(response => response.json())
         .then(data => {
-            console.log('TIM DUOC:', data);
             setCustomer(data);
             setCustomerDataBefore(data);
             setProvinceIdCurrent(data.provinceId);
@@ -166,8 +165,6 @@ const Edit = (url) => {
         return Object.keys(newErrors).length === 0;
     }, [badInput]);
         useEffect(() => {
-            console.log('customerDataBefore', customerDataBefore);
-            console.log('customer', customer);
             if (customerDataBefore && customer) {
                 const hasErrors = Object.values(errors).some(error => error && error !== "");
                 const isDisabled = JSON.stringify(customerDataBefore) === JSON.stringify(customer) || hasErrors;
@@ -175,7 +172,6 @@ const Edit = (url) => {
             }
         }, [customerDataBefore, customer, errors]);
         const handleChangeAddress =(e) => {
-            console.log('change')
             const {name, value} = e.target;
             setErrors({
                 ...errors,
@@ -246,7 +242,6 @@ const Edit = (url) => {
                 hoTenDayDu: `${customer.ho.trim()} ${customer.tenDem.trim()} ${tenArray.join(' ')}`,
             };
 
-            console.log('Submitted data:', finalData);
             fetch(`${url.url}/api/form/updated`, {
                 method: 'PUT',
                 headers: {
@@ -256,7 +251,6 @@ const Edit = (url) => {
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data.message);
                 window.location.href = '/list';
             })
             .catch(error => console.error(error));
@@ -275,7 +269,7 @@ const Edit = (url) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col">
-                    <label className={`${errors.ho ? 'text-red-500' : 'text-slate-700'} text-sm font-semibold text-gray-700 mb-1 ${errors.ho ? 'text-red-500' : ''}`}>Họ:</label>
+                    <label className={`${errors.ho ? 'text-red-500' : 'text-slate-700'} text-sm font-semibold text-gray-700 mb-1 ${errors.ho ? 'text-red-500' : ''}`}>Họ<span className="text-red-500">*</span></label>
                     <input type="text" id="ho" name="ho"
                     onBlur={handleBlur}
                     placeholder="Ví dụ: Nguyễn"
@@ -296,7 +290,7 @@ const Edit = (url) => {
                 </div>
 
                 <div className="flex flex-col">
-                    <label className={`${errors.ten ? 'text-red-500' : 'text-slate-700'} text-sm font-semibold text-gray-700 mb-1 ${errors.ten ? 'text-red-500' : ''}`}>Tên:</label>
+                    <label className={`${errors.ten ? 'text-red-500' : 'text-slate-700'} text-sm font-semibold text-gray-700 mb-1 ${errors.ten ? 'text-red-500' : ''}`}>Tên<span className="text-red-500">*</span></label>
                     <input type="text" id="ten" name="ten"
                     onBlur={handleBlur}
                     placeholder="Ví dụ: Văn A"

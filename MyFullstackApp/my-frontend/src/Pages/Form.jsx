@@ -53,7 +53,6 @@ const Form = (url) => {
             e.target.maxLength = 10;
         }
         let value = e.target.value;
-        console.log(value)
 
         setFormData({
             ...formData,
@@ -179,12 +178,8 @@ const Form = (url) => {
 
     const validateForm = () => {
     let newErrors = {};
-    console.log(formData.dateOfBirth);
     const dateObj = new Date(formData.dateOfBirth);
     const currentDate = new Date();
-    // if (!formData.dateOfBirth) {
-    //     newErrors.dateOfBirth = "Vui lòng chọn ngày sinh";
-    // }
     if(badInput && !formData.dateOfBirth) {
         newErrors.dateOfBirth = "Ngày sinh không hợp lệ";
     }
@@ -217,7 +212,6 @@ const Form = (url) => {
         let tenDem2 = dataBefore.tenDem.trim();
         let ten2 = tenArray.join(' ');
         let hoTenDayDu2 = tenDem2 ? `${ho2} ${tenDem2} ${tenArray.join(' ')}` : `${ho2} ${tenArray.join(' ')}`;
-        console.log('tenArray', tenArray);
         const finalData = {
             ...formData,
             ho: ho2,
@@ -225,8 +219,6 @@ const Form = (url) => {
             tenDem: tenDem2,
             hoTenDayDu: hoTenDayDu2
         };
-        console.log("Form submitted:", finalData);
-        console.log("URL:", url);
         fetch(`${url.url}/api/form/add`, {
             method: 'POST',
             headers: {
@@ -466,6 +458,11 @@ const Form = (url) => {
                                 className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95">
                                 <i className="fa-solid fa-circle-check"></i>
                                 Xác Nhận Đăng Ký
+                            </button>
+                            <button type="submit" id="btnSubmit" onClick={handleSubmit}
+                                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95">
+                                <i className="fa-solid fa-circle-check"></i>
+                                Import file
                             </button>
                             <a href="/list" className="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-blue-600 hover:text-blue-600 text-slate-600 font-bold py-4 rounded-2xl transition-all hover:-translate-y-1 active:scale-95">
                                 <i className="fa-solid fa-list-ul"></i>

@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const List = (url) => {
-    console.log("list", url)
     const [customers, setCustomers] = useState([]);
     const [checkAll, setCheckAll] = useState(false);
     const [showSucess, setShowSucess] = useState(false);
@@ -28,16 +27,13 @@ const List = (url) => {
     // --- CSS Styles cơ bản ---
     const pageSize = 10;
     const fetchCustomer = useCallback((page) => {
-        console.log('isUpName3', isUpName)
     if(!isSearching) {
         fetch(`${url.url}/api/form/list?page=${page}&pageSize=${pageSize}&isUpName=${isUpName}`)
         .then(res => res.json())
         .then(res => {
-            console.log(res.data)
             const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
             setCustomers(updatedData);
             setTotalPages(res.totalPages);
-            console.log('Total pages:', res.totalPages);
         });
     }
 }, [url, isUpName, isSearching]);
@@ -54,31 +50,24 @@ const List = (url) => {
         return dateString.split('-').reverse().join('-');
     };
     const handleLoc = () => {
-        console.log('Loc');
         setShowFilter(!showFilter);
     };
     const handleInputChange = (e) => {
-        console.log('Input change', e.target.name, e.target.value);
         if(e.target.name == 'province') {
-            console.log('Province change', e.target.value);
             setObjectFilter({...objectFilter, provinceId: e.target.value});
         } else if (e.target.name == 'gender') {
-            console.log('Gender change', e.target.value);
             setObjectFilter({...objectFilter, gender: e.target.value});
         } else if (e.target.name == 'dob') {
-            console.log('DOB change', e.target.value);
             setObjectFilter({...objectFilter, dob: e.target.value});
         }
     };
     const applyFilter = () => {
-        console.log('Apply filter', objectFilter);
         // Gọi API search với objectFilter
         setCurrentPageSearch(1); 
         setIsSearching(true);
         fetchSearchData();
     };
     const resetFilter = () => {
-        console.log('Reset filter');
         const emptyFilter = {
             provinceId: '',
             gender: '',
@@ -95,10 +84,8 @@ const fetchSearchData = () => {
 };
 useEffect(() => {
         fetchSearchData();
-        console.log('isUpName', isUpName)
     }, [isUpName]);
 const fetchSearchDataWithFilter = (filter) => {
-    console.log("isUpName2", isUpName)
     setIsLoading(true)
     fetch(`${url.url}/api/form/search`, {
         method: 'POST',
@@ -113,10 +100,8 @@ const fetchSearchDataWithFilter = (filter) => {
     })
     .then(res => res.json())
     .then(res => {
-        console.log(res.data)
         const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
         setCustomers(updatedData);
-        console.log(res.totalPages)
         setTotalPagesSearch(res.totalPages);
         setIsLoading(false)
         setShowSucess(true);
@@ -200,7 +185,6 @@ useEffect(() => {
             setCheckAll(false)
             // Cập nhật lại danh sách khách hàng
             fetchCustomer(currentPage);
-            console.log(totalPages)
             // Hiển thị thông báo thành công
                 setShowSucess(true);
                 setIsLoading(false);
@@ -223,7 +207,6 @@ useEffect(() => {
         })
     };
     const handleEdit = (id) => {
-        console.log('Sửa khách hàng có ID:', id);
         // Chuyển hướng đến trang sửa
         window.location.href = `/edit?id=${id}`;
     };
