@@ -8,10 +8,12 @@ import NotFound from './Pages/NotFound.jsx'
 import List from './Pages/List.jsx'
 import Form from './Pages/Form.jsx'
 import Edit from './Pages/Edit.jsx'
+import ShowLog from './Pages/ShowLog.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 
 const URL = import.meta.env.VITE_URL_PRODUCTION || 'https://localhost:5066';
+const URL_Express = import.meta.env.VITE_URL_EXPRESS || 'http://localhost:8888';
 
 const router = createBrowserRouter([
   {
@@ -21,7 +23,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/", // Trang chủ: localhost:5173/
-        element: <Home url={URL} />,
+        element: <Home url={{ urlASP: URL, urlExpress: URL_Express }} />,
       },
       {
         path: "quiz/:id", // Trang chi tiết: localhost:5173/quiz/1
@@ -29,16 +31,20 @@ const router = createBrowserRouter([
       },
       {
         path: "list/", // Trang chi tiết: localhost:5173/list
-        element: <List url={URL} />,
+        element: <List url={{ urlASP: URL, urlExpress: URL_Express }} />,
       },
       {
         path: "form/", // Trang chi tiết: localhost:5173/list
-        element: <Form url={URL} />,
+        element: <Form url={{ urlASP: URL, urlExpress: URL_Express }} />,
       },
       {
         path: "edit/", // Trang chi tiết: localhost:5173/list
-        element: <Edit url={URL} />,
+        element: <Edit url={{ urlASP: URL, urlExpress: URL_Express }} />,
       },
+      {
+        path: "log/", // Trang chi tiết: localhost:5173/log
+        element: <ShowLog />,
+      }
     ],
   },
 ]);

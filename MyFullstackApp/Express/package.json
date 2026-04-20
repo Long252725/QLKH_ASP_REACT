@@ -1,0 +1,55 @@
+{
+  "name": "muaproxy-nodejs",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon --exec babel-node src/index.js",
+    "build": "npx babel src -d dist --copy-files",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Long252725/MuaProxy-nodejs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Long252725/MuaProxy-nodejs/issues"
+  },
+  "homepage": "https://github.com/Long252725/MuaProxy-nodejs#readme",
+  "description": "",
+  "dependencies": {
+    "@babel/cli": "^7.25.0",
+    "@babel/core": "^7.25.2",
+    "@babel/node": "^7.25.0",
+    "@babel/preset-env": "^7.25.4",
+    "@handlebars/allow-prototype-access": "^1.0.5",
+    "axios": "^1.14.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.6",
+    "crypto": "^1.0.1",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-handlebars": "^6.0.7",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.4",
+    "mongoose-delete": "^1.0.2",
+    "mongoose-slug-generator": "^1.0.4",
+    "multer": "^2.1.1",
+    "nodemon": "^3.1.4",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "css-loader": "^7.1.4",
+    "css-minimizer-webpack-plugin": "^8.0.0",
+    "handlebars": "^4.5.0",
+    "javascript-obfuscator": "^5.4.1",
+    "mini-css-extract-plugin": "^2.10.2",
+    "terser-webpack-plugin": "^5.4.0",
+    "webpack": "^5.105.4",
+    "webpack-cli": "^7.0.2",
+    "webpack-obfuscator": "^3.6.0"
+  }
+}

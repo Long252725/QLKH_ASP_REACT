@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Bson;
 
@@ -16,7 +17,7 @@ public class FormController : ControllerBase
     public FormController(IMongoClient mongoClient, IOptions<MongoDbSettings> settings)
     {
         var database = mongoClient.GetDatabase(settings.Value.DatabaseName);
-        _customerCollection = database.GetCollection<CustomerModel>("Customers");
+        _customerCollection = database.GetCollection<CustomerModel>("customers");
     }
     [HttpPost("add")]
     public async Task<IActionResult> AddCustomer([FromBody] CustomerModel customer)
@@ -219,26 +220,29 @@ public async Task<IActionResult> UpdateCustomer([FromBody] CustomerModel updated
 }
 }
 // 1. Khai báo cái khuôn để nhận dữ liệu
-public class CustomerModel
-{
-    [MongoDB.Bson.Serialization.Attributes.BsonId]
-    [MongoDB.Bson.Serialization.Attributes.BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
-    public string? Id { get; set; }
-    public string Ho { get; set; }
-    public string Ten { get; set; }
-    public string TenDem { get; set; }
-    public string HoTenDayDu { get; set; }
-    public string Email { get; set; }
-    public string Sdt { get; set; }
-    public string DateOfBirth { get; set; }
-    public string Gender { get; set; }
-    public string Province { get; set; }
-    public string District { get; set; }
-    public string Ward { get; set; }
-    public string ProvinceId { get; set; }
-    public string DistrictId { get; set; }
-    public string WardId { get; set; }
-}
+[BsonIgnoreExtraElements]
+    public class CustomerModel
+    {
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
+        [MongoDB.Bson.Serialization.Attributes.BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        public string? Id { get; set; }
+        public string Ho { get; set; }
+        public string Ten { get; set; }
+        public string TenDem { get; set; }
+        public string HoTenDayDu { get; set; }
+        public string Email { get; set; }
+        public string Sdt { get; set; }
+        public string DateOfBirth { get; set; }
+        public string Gender { get; set; }
+        public string Province { get; set; }
+        public string District { get; set; }
+        public string Ward { get; set; }
+        [BsonElement("createdAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [BsonElement("updatedAt")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
 public class SearchRequest
 {
     public string Name { get; set; }

@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-const Edit = (url) => {
+const Edit = ({url}) => {
     const [searchParams] = useSearchParams();
     const [errors, setErrors] = useState({}); // Lưu lỗi dưới dạng { ho: true, email: true }
     const [customer, setCustomer] = useState({});
@@ -9,29 +9,31 @@ const Edit = (url) => {
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
-    const [provinceIdCurrent, setProvinceIdCurrent] = useState();
+    const [provinceCurrent, setProvinceCurrent] = useState();
+    const [provinceId, setProvinceId] = useState();
+    
 
     const [dateCurrent, setDateCurrent] = useState();
-    const [districtIdCurrent, setDistrictIdCurrent] = useState();
-    const [wardIdCurrent, setWardIdCurrent] = useState();
+    const [districtCurrent, setDistrictCurrent] = useState();
+    const [wardCurrent, setWardCurrent] = useState();
     const [disabledBtn, setDisabledBtn] = useState(false);
     const [badInput, setBadInput] = useState(false);
     const [customerDataBefore, setCustomerDataBefore] = useState();
-    const [isBug, setIsBug] = useState(false);
+    // const [isBug, setIsBug] = useState(false);
 
     useEffect(() => {
-        fetch(`${url.url}/api/form/edit/${id}`)
+        fetch(`${url.urlASP}/api/form/edit/${id}`)
         .then(response => response.json())
         .then(data => {
             setCustomer(data);
             setCustomerDataBefore(data);
-            setProvinceIdCurrent(data.provinceId);
-            setDistrictIdCurrent(data.districtId);
-            setWardIdCurrent(data.wardId);
+            setProvinceCurrent(data.province);
+            setDistrictCurrent(data.district);
+            setWardCurrent(data.ward);
             setDateCurrent(data.dateOfBirth)
         })
         .catch(error => console.error(error));
-    }, [url, id]);
+    }, [url.urlASP, id]);
         useEffect(() => {
             fetch('https://provinces.open-api.vn/api/v2/p/?depth=2')
                 .then(res => res.json())
@@ -40,21 +42,37 @@ const Edit = (url) => {
                 });
         }, []);
         useEffect(() => {
-            if (customer.provinceId) {
-                fetch(`https://provinces.open-api.vn/api/v2/p/${customer.provinceId}?depth=2`)
+            if (customer.province) {
+                fetch('https://provinces.open-api.vn/api/v2/p/?depth=2')
                     .then(res => res.json())
-                    .then(datas => {
-                        setDistricts(datas.wards); });
+                    .then(provinces => {
+                        const province = provinces.find(p => p.name === customer.province);
+                        if (province) {
+                            setProvinceId(province.code);
+                            fetch(`https://provinces.open-api.vn/api/v2/p/${province.code}?depth=2`)
+                                .then(res => res.json())
+                                .then(datas => {
+                                    setDistricts(datas.wards); });
+
+                        }
+                    });
             }
-        }, [customer.provinceId]);
+        }, [customer.province]);
         useEffect(() => {
-            if (customer.districtId) {
-                fetch(`https://provinces.open-api.vn/api/v2/w/${customer.districtId}/to-legacies/`)
+            if (customer.district) {
+                fetch(`https://provinces.open-api.vn/api/v2/p/${provinceId}?depth=2`)
                 .then(res => res.json())
-                .then(datas => { 
-                    setWards(datas); });
+                .then(districts => {
+                    const district = districts.wards.find(d => d.name === customer.district);
+                    if (district) {
+                        fetch(`https://provinces.open-api.vn/api/v2/w/${district.code}/to-legacies/`)
+                        .then(res => res.json())
+                        .then(datas => { 
+                            setWards(datas); });
+                    }
+                })
             }
-        }, [customer.districtId]);
+        }, [customer.district, provinceId]);
         const handleChange =(e) => {
             let name = e.target.name;
             if (name == 'ho' || name == 'ten' || name == 'tenDem') {
@@ -180,7 +198,7 @@ const Edit = (url) => {
             
     
             if (name == "province") {
-                setProvinceIdCurrent(e.target.options[e.target.selectedIndex].value);
+                setProvinceCurrent(e.target.options[e.target.selectedIndex].value);
                 setDistricts([]);
                 setWards([]);
                 setCustomer({
@@ -199,7 +217,7 @@ const Edit = (url) => {
                     setDistricts(datas.wards); });
                 }
             } else if (name == "district") {
-                setDistrictIdCurrent(e.target.options[e.target.selectedIndex].value);
+                setDistrictCurrent(e.target.options[e.target.selectedIndex].value);
                 setWards([]);
                 setCustomer({
                 ...customer,
@@ -215,7 +233,7 @@ const Edit = (url) => {
                     setWards(datas); });
                 }
             } else if (name == "ward") {
-                setWardIdCurrent(e.target.options[e.target.selectedIndex].value);
+                setWardCurrent(e.target.options[e.target.selectedIndex].value);
                 setCustomer({
                 ...customer,
                 ward: e.target.options[e.target.selectedIndex].getAttribute('data-key'),
@@ -242,7 +260,7 @@ const Edit = (url) => {
                 hoTenDayDu: `${customer.ho.trim()} ${customer.tenDem.trim()} ${tenArray.join(' ')}`,
             };
 
-            fetch(`${url.url}/api/form/updated`, {
+            fetch(`${url.urlASP}/api/form/updated`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -250,7 +268,7 @@ const Edit = (url) => {
                 body: JSON.stringify(finalData)
             })
             .then(response => response.json())
-            .then(data => {
+            .then(() => {
                 window.location.href = '/list';
             })
             .catch(error => console.error(error));
@@ -347,31 +365,31 @@ const Edit = (url) => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="queQuan">
                     <select id="province" name="province" 
                     onChange={handleChangeAddress} 
-                    value={provinceIdCurrent}
+                    value={provinceCurrent}
                     className="border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 outline-none">
                     <option value="" data-key="">Chọn tỉnh/thành phố</option>
                     {provinces.map((province) => (
-                                        <option value={province.code} key={province.name} data-key={province.name}>{province.name}</option>
+                                        <option value={province.name} key={province.name} data-key={province.name}>{province.name}</option>
                                     ))}
                     </select>
                     <select id="district" name="district" 
                     onChange={handleChangeAddress} 
-                    value={districtIdCurrent}
+                    value={districtCurrent}
                     className="border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 outline-none">
                     <option value="" data-key="" selected>Chọn quận/huyện</option>
                     {(
                                     districts.map((district) => (
-                                        <option value={district.code} key={district.name} data-key={district.name}>{district.name}</option>
+                                        <option value={district.name} key={district.name} data-key={district.name}>{district.name}</option>
                                         ))
                                 )}
                     </select>
                     <select id="ward" name="ward" 
-                    value={wardIdCurrent}
+                    value={wardCurrent}
                     onChange={handleChangeAddress} className="border border-gray-300 p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 outline-none">
                     <option value="" data-key="" selected>Chọn phường/xã</option>
                         {(
                                     wards.map((ward) => (
-                                        <option value={ward.code} key={ward.name} data-key={ward.name}>{ward.name}</option>
+                                        <option value={ward.name} key={ward.name} data-key={ward.name}>{ward.name}</option>
                                     ))
                                 )}
                     </select>

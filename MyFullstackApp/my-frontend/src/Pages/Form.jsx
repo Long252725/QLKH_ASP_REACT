@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import {motion, AnimatePresence} from 'framer-motion'
+import { useNavigate } from 'react-router-dom';
 
 
-const Form = (url) => {
+const Form = ({url}) => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         ho: '',
         ten: '',
@@ -13,11 +15,7 @@ const Form = (url) => {
         gender: 'Nam',
         province: '',
         district: '',
-        ward: '',
-        hoTenDayDu: '',
-        provinceId: '',
-        districtId: '',
-        wardId: ''
+        ward: ''
     });
     const [isLoading, setIsLoading] = useState(false);
     const [showSucess, setShowSucess] = useState(false);
@@ -51,6 +49,27 @@ const Form = (url) => {
         if (name == 'sdt') {
             e.target.value = e.target.value.replace(/[^0-9]/g, "");
             e.target.maxLength = 10;
+        }
+        if (e.target.name == 'fileInput' ){
+            const formData = new FormData();
+            formData.append('file', e.target.files[0]);
+
+            fetch(`${url.urlExpress}/api/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data) {
+                    console.log('File uploaded successfully');
+                    console.log('data.dataTrue:', data.dataTrue);
+                    console.log('data.dataFalse:', data.dataFalse);
+                    console.log('data.dataTrung:', data.dataTrung);
+                    navigate('/log', { state: { dataTrue: data.dataTrue, dataFalse: data.dataFalse, dataTrung: data.dataTrung, hint: '1' } });
+                    // Handle successful upload
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
         let value = e.target.value;
 
@@ -121,8 +140,8 @@ const Form = (url) => {
                     ...errors,
                     [e.target.name]: ""
                 });
-            }
-        }
+            } 
+        } 
         
     }
 
@@ -142,7 +161,6 @@ const Form = (url) => {
             setWards([]);
             setFormData({
                 ...formData,
-                provinceId: e.target.options[e.target.selectedIndex].value,
                 province: e.target.options[e.target.selectedIndex].text
             });
 
@@ -158,7 +176,6 @@ const Form = (url) => {
             setWards([]);
             setFormData({
                 ...formData,
-                districtId: e.target.options[e.target.selectedIndex].value,
                 district: e.target.options[e.target.selectedIndex].text
             });
             if (value) {
@@ -169,7 +186,6 @@ const Form = (url) => {
         } else if (name == "ward") {
          setFormData({
                 ...formData,
-                wardId: e.target.options[e.target.selectedIndex].value,
                 ward: e.target.options[e.target.selectedIndex].text
             });
         }
@@ -219,7 +235,7 @@ const Form = (url) => {
             tenDem: tenDem2,
             hoTenDayDu: hoTenDayDu2
         };
-        fetch(`${url.url}/api/form/add`, {
+        fetch(`${url.urlASP}/api/form/add`, {
             method: 'POST',
             headers: {
             'Content-Type': 'application/json'
@@ -459,11 +475,20 @@ const Form = (url) => {
                                 <i className="fa-solid fa-circle-check"></i>
                                 Xác Nhận Đăng Ký
                             </button>
-                            <button type="submit" id="btnSubmit" onClick={handleSubmit}
+                            {/* <button type="submit" id="btnSubmit" 
                                 className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95">
                                 <i className="fa-solid fa-circle-check"></i>
-                                Import file
-                            </button>
+                                <input type="file" id="fileInput" className="hidden" />
+                                <label htmlFor="fileInput" className="cursor-pointer">
+                                    Import file
+                                </label>
+                            </button> */}
+                            <input type="file" id="fileInput" name="fileInput" className="hidden" 
+                            accept=".xlsx, .xls"
+                            onChange={handleChange} />
+                            <label htmlFor="fileInput" className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95 cursor-pointer">
+                                    Import file
+                                </label>
                             <a href="/list" className="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-blue-600 hover:text-blue-600 text-slate-600 font-bold py-4 rounded-2xl transition-all hover:-translate-y-1 active:scale-95">
                                 <i className="fa-solid fa-list-ul"></i>
                                 Danh Sách KH
