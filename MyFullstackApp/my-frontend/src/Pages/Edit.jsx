@@ -22,7 +22,7 @@ const Edit = ({url}) => {
     // const [isBug, setIsBug] = useState(false);
 
     useEffect(() => {
-        fetch(`${url.urlASP}/api/form/edit/${id}`)
+        fetch(`${url.urlASP}/api/customer/edit/${id}`)
         .then(response => response.json())
         .then(data => {
             setCustomer(data);
@@ -260,7 +260,7 @@ const Edit = ({url}) => {
                 hoTenDayDu: `${customer.ho.trim()} ${customer.tenDem.trim()} ${tenArray.join(' ')}`,
             };
 
-            fetch(`${url.urlASP}/api/form/updated`, {
+            fetch(`${url.urlASP}/api/customer/updated`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

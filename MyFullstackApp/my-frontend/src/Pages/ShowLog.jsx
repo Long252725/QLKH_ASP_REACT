@@ -5,8 +5,9 @@ import * as XLSX from 'xlsx';
 const ShowLog = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { dataTrue = [], dataFalse = [], dataTrung = [], hint } = location.state || {};
+    const { dataTrue = [], dataFalse = [], dataTrung = [] } = location.state || {};
 
+    
     // --- LOGIC PHÂN TRANG ---
     const [currentPage, setCurrentPage] = useState(1);
     const [xemDataTrung, setXemDataTrung] = useState(false);
@@ -19,6 +20,7 @@ const ShowLog = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItemsTrue = dataTrue.slice(indexOfFirstItem, indexOfLastItem);
+    console.log(currentItemsTrue)
     const currentItemsFalse = dataFalse.slice(indexOfFirstItem, indexOfLastItem);
     const currentItemsTrung = dataTrung.slice(indexOfFirstItem, indexOfLastItem);
 
@@ -77,7 +79,7 @@ const ShowLog = () => {
                     {hasDataTrung && (
                         <div className='flex gap-2'>
                             <button onClick={() => exportToExcel(dataTrung, "du_lieu_trung")} className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-all active:scale-95 cursor-pointer gap-2">
-                            <i class="fa-solid fa-file-arrow-down"></i> Tải dữ liệu trùng
+                            <i className="fa-solid fa-file-arrow-down"></i> Tải dữ liệu trùng
                         </button>
                         <button onClick={handleXemDuLieuTrung} className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-all active:scale-95 cursor-pointer">
                             Xem dữ liệu trùng
@@ -86,7 +88,7 @@ const ShowLog = () => {
                     )}
                     {hasDataFalse && (
                         <button onClick={() => exportToExcel(dataFalse, "du_lieu_loi")} className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-all active:scale-95 cursor-pointer gap-2">
-                            <i class="fa-solid fa-file-arrow-down"></i>Tải dữ liệu lỗi
+                            <i className="fa-solid fa-file-arrow-down"></i>Tải dữ liệu lỗi
                         </button>
                     )}
                     {hasDataFalse && (
@@ -120,11 +122,11 @@ const ShowLog = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {currentItemsTrue.map((item, index) => (
                                     <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.HoTenDayDu}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{item.Sdt}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{item.Email}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.hoTenDayDu}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.sdt}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                                            {`${item.Province} - ${item.District} - ${item.Ward}`}
+                                            {`${item.province} - ${item.district} - ${item.ward}`}
                                         </td>
                                     </tr>
                                 ))}
@@ -151,11 +153,11 @@ const ShowLog = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {currentItemsTrung.map((item, index) => (
                                     <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.HoTenDayDu}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{item['SDT']}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{item['Email']}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.hoTenDayDu}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.sDT}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                                            {`${item['Tỉnh/Thành Phố']} - ${item['Quận/Huyện']} - ${item['Phường/Xã']}`}
+                                            {`${item.provice} - ${item.district} - ${item.ward}`}
                                         </td>
                                     </tr>
                                 ))}
@@ -182,11 +184,11 @@ const ShowLog = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {currentItemsFalse.map((item, index) => (
                                     <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.HoTenDayDu}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{item['SDT']}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{item['Email']}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.hoTenDayDu}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.sDT}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.email}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                                            {`${item['Tỉnh/Thành Phố']} - ${item['Quận/Huyện']} - ${item['Phường/Xã']}`}
+                                            {`${item.province} - ${item.district} - ${item.ward}`}
                                         </td>
                                     </tr>
                                 ))}

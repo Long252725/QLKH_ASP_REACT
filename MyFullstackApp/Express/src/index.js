@@ -335,10 +335,7 @@ async function handleNomarlizeData(data) {
             return {dataTrue, dataFalse, dataTrung};
 
 }
-// (async () => {
-//     const result = await handleNomarlizeData(data);
-//     console.log("Dữ liệu đã chuẩn hóa:", result);
-// })();
+
 function checkCorrectData(item) {
     const email = String(item.Email).toLowerCase();
     const sdt = String(item.Sdt).trim();

@@ -1,43 +1,29 @@
 import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, time } from "framer-motion";
 
 const List = ({url}) => {
-    const [customers, setCustomers] = useState([]);
-    const [checkAll, setCheckAll] = useState(false);
-    const [showSucess, setShowSucess] = useState(false);
-    const [showFail, setShowFail] = useState(false);
-    const [isLoading, setIsLoading] = useState(false)
+    const urlASP = url.urlASP;
     const [showAlert, setShowAlert] = useState(false)
+    const [checkAll, setCheckAll] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false)
-    const [searchTerm, setSearchTerm] = useState("");
-
-    const [currentPage, setCurrentPage] = useState(1);
-    const [currentPageSearch, setCurrentPageSearch] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
-    const [isSearching, setIsSearching] = useState(false);
-    const [totalPagesSearch, setTotalPagesSearch] = useState(0);
-    const [showFilter, setShowFilter] = useState(false);   
+    const [showFail, setShowFail] = useState(false);
+    const [showSucess, setShowSucess] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [showFilter, setShowFilter] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [customers, setCustomers] = useState([]);
     const [provinces, setProvinces] = useState([]);
-    const [objectFilter, setObjectFilter] = useState({
-        provinceId: '',
+    const [pageSizeSate, setPageSizeState] = useState(10);
+    const [objectSearch, setObjectSearch] = useState({
+        keyword: '',
+        province: '',
+        sortBy: '',
         gender: '',
-        dob: ''
-    });
-    const [isUpName, setIsUpName] = useState(true);
-    // --- CSS Styles cơ bản ---
-    const pageSize = 10;
-    const fetchCustomer = useCallback((page) => {
-    if(!isSearching) {
-        fetch(`${url.urlASP}/api/form/list?page=${page}&pageSize=${pageSize}&isUpName=${isUpName}`)
-        .then(res => res.json())
-        .then(res => {
-            const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
-            setCustomers(updatedData);
-            setTotalPages(res.totalPages);
-        });
-    }
-}, [url.urlASP, isUpName, isSearching]);
-    
+         dob: '',
+        page: 1,
+        pageSize: pageSizeSate
+    })
+    const [totalPages, setTotalPages] = useState();
     useEffect(() => {
             fetch('https://provinces.open-api.vn/api/v2/p/?depth=2')
                 .then(res => res.json())
@@ -45,96 +31,39 @@ const List = ({url}) => {
                     setProvinces(datas);
                 });
         }, []);
-
-    const formatDate = (dateString) => {
-        return dateString.split('-').reverse().join('-');
+    const fetchCustomers = useCallback((searchParams) => {
+        setIsLoading(true);
+        const query = new URLSearchParams(searchParams).toString();
+        fetch(`${urlASP}/api/customer/search?${query}`)
+            .then(res => res.json())
+            .then(data => {
+                const updatedData = data.items.map(item => ({ ...item, isChecked: false }));
+                setCustomers(updatedData);
+                setTotalPages(data.totalPages);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setIsLoading(false);
+            })
+    }, [urlASP]);
+    useEffect(() => {
+    fetchCustomers(objectSearch);
+}, [objectSearch, fetchCustomers]);
+    
+    const handleEdit = (id) => {
+        // Chuyển hướng đến trang sửa
+        window.location.href = `/edit?id=${id}`;
     };
-    const handleLoc = () => {
-        setShowFilter(!showFilter);
-    };
-    const handleInputChange = (e) => {
-        if(e.target.name == 'province') {
-            setObjectFilter({...objectFilter, provinceId: e.target.value});
-        } else if (e.target.name == 'gender') {
-            setObjectFilter({...objectFilter, gender: e.target.value});
-        } else if (e.target.name == 'dob') {
-            setObjectFilter({...objectFilter, dob: e.target.value});
-        }
-    };
-    const applyFilter = () => {
-        // Gọi API search với objectFilter
-        setCurrentPageSearch(1); 
-        setIsSearching(true);
-        fetchSearchData();
-    };
-    const resetFilter = () => {
-        const emptyFilter = {
-            provinceId: '',
-            gender: '',
-            dob: ''
-        };
-        setObjectFilter(emptyFilter);
-        fetchSearchDataWithFilter(emptyFilter);
-        setIsSearching(false);
-
-    };
-
-const fetchSearchData = () => {
-    fetchSearchDataWithFilter(objectFilter);
-};
-useEffect(() => {
-        fetchSearchData();
-    }, [isUpName]);
-const fetchSearchDataWithFilter = (filter) => {
-    setIsLoading(true)
-    fetch(`${url.urlASP}/api/form/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            name: searchTerm,
-            page: currentPageSearch, // Luôn lấy giá trị mới nhất từ state
-            pageSize: pageSize,
-            ...filter,
-            isUpName: isUpName
-        }),
-    })
-    .then(res => res.json())
-    .then(res => {
-        const updatedData = res.data.map(item => ({ ...item, isChecked: false }));
-        setCustomers(updatedData);
-        setTotalPagesSearch(res.totalPages);
-        setIsLoading(false)
-        setShowSucess(true);
-        setTimeout(()=> {
-            setShowSucess(false)   
-        }, 3000)
-    })
-    .catch(error => console.error('Search error:', error));
-};
-useEffect(() => {
-    if (isSearching && searchTerm !== "") {
-        fetchSearchData();
+    const handleOnChangeSearch = (e) => {
+        setSearchTerm(e.target.value);
     }
-}, [currentPageSearch, isSearching]); 
-
-
-// Chỉ tạo lại hàm nếu currentPage thay đổi
-        useEffect(() => {
-            // Gọi API kèm theo tham số page
-            fetchCustomer(currentPage);
-        }, [currentPage, fetchCustomer, isUpName]); // Hễ currentPage thay đổi là tự động fetch lại
-    // Chọn tất cả hoặc bỏ chọn tất cả
-        const handleCheckAll = (e) => {
-            const isChecked = e.target.checked;
-            setCheckAll(isChecked);
-            setCustomers(customers.map(c => ({ ...c, isChecked })));
-        };
-        // Chọn từng dòng một
-        const handleCheckItem = (id) => {
-            setCustomers(customers.map(c => 
-                c.id === id ? { ...c, isChecked: !c.isChecked } : c
-            ));
-        };
+    const handleSearch = (pageSize) => {
+        console.log("Search term:", searchTerm);
+        
+        pageSize ? setObjectSearch(prev => ({ ...prev, page: 1, keyword: searchTerm, pageSize: pageSize })): setObjectSearch(prev => ({ ...prev, page: 1, keyword: searchTerm }));
+    }
+    // delete
     const handleConfirmDelete = () => {
         const selectedIds = customers.filter(c => c.isChecked).map(c => c.id);
         setConfirmDelete(true);
@@ -148,24 +77,16 @@ useEffect(() => {
         }
         
     }
-    const handleOnChangeSearch = (e) => {
-        setSearchTerm(e.target.value);
-    }
-
-    const handleSearch = () => {
-    if (searchTerm === "") {
-        setIsSearching(false);
-        setCurrentPage(1); // Reset về trang 1 của danh sách thường
-        fetchCustomer(1);
-    } else {
-        setIsSearching(true);
-        setCurrentPageSearch(1); // QUAN TRỌNG: Reset về trang 1 khi tìm mới
-        // Nếu trang đang là 1 sẵn rồi, useEffect sẽ không tự trigger, 
-        // nên ta cần gọi trực tiếp hoặc đảm bảo logic trigger đúng.
-        fetchSearchData(); 
-    }
-};
-
+    const handleCheckItem = (id) => {
+            setCustomers(customers.map(c => 
+                c.id === id ? { ...c, isChecked: !c.isChecked } : c
+            ));
+        };
+    const handleCheckAll = (e) => {
+            const isChecked = e.target.checked;
+            setCheckAll(isChecked);
+            setCustomers(customers.map(c => ({ ...c, isChecked })));
+        };
     const handleDeleteSelected = () => {
         setConfirmDelete(false);
         const selectedIds = customers.filter(c => c.isChecked).map(c => c.id);
@@ -173,7 +94,7 @@ useEffect(() => {
         
         console.log('Xóa các khách hàng có ID:', selectedIds);
         // Gọi API xóa ở đây
-        fetch(`${url.urlASP}/api/form/delete`, {
+        fetch(`${urlASP}/api/customer/delete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -184,7 +105,7 @@ useEffect(() => {
         .then(() => {
             setCheckAll(false)
             // Cập nhật lại danh sách khách hàng
-            fetchCustomer(currentPage);
+            fetchCustomers(objectSearch);
             // Hiển thị thông báo thành công
                 setShowSucess(true);
                 setIsLoading(false);
@@ -206,9 +127,15 @@ useEffect(() => {
             
         })
     };
-    const handleEdit = (id) => {
-        // Chuyển hướng đến trang sửa
-        window.location.href = `/edit?id=${id}`;
+    // Filter
+    const handleInputChange = (e) => {
+        if(e.target.name == 'province') {
+            setObjectSearch({...objectSearch, province: e.target.value});
+        } else if (e.target.name == 'gender') {
+            setObjectSearch({...objectSearch, gender: e.target.value});
+        } else if (e.target.name == 'dob') {
+            setObjectSearch({...objectSearch, dob: e.target.value});
+        }
     };
     return (
         <>
@@ -282,9 +209,8 @@ useEffect(() => {
                                 type="text" 
                                 id="searchInput"
                                 value={searchTerm} // Gắn giá trị vào State\
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearch(pageSizeSate)}
                                 onChange={handleOnChangeSearch}
-                                // onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                                 className="block w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm placeholder-slate-400
                                         focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent
                                         transition-all duration-200 shadow-sm" 
@@ -292,8 +218,11 @@ useEffect(() => {
                             />
                         </div>
 
-                        <button id="btnSearch" onClick={handleSearch} className= "w-24 text-white font-bold bg-[#2563eb] p-2 rounded hover:cursor-pointer hover:bg-blue-800 flex items-center justify-center gap-2"><i className="fa-solid fa-magnifying-glass"></i>Tìm</button>
-                        <button id="btnLoc" onClick={handleLoc} className= "w-24 text-white font-bold bg-[#2563eb] p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-blue-800"><i className="fa-solid fa-filter"></i>Lọc</button>
+                        <button id="btnSearch" onClick={() => {handleSearch(pageSizeSate)}} className= "w-24 text-white font-bold bg-[#2563eb] p-2 rounded hover:cursor-pointer hover:bg-blue-800 flex items-center justify-center gap-2"><i className="fa-solid fa-magnifying-glass"></i>Tìm</button>
+                        <button id="btnLoc" onClick={()=> {
+                            setShowFilter(!showFilter)
+                            showFilter && setObjectSearch({...objectSearch, province: '', gender: '', dob: ''})
+                            }} className= "w-24 text-white font-bold bg-[#2563eb] p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-blue-800"><i className="fa-solid fa-filter"></i>Lọc</button>
                         
                         <button id="btnReload" onClick={()=> {window.location.reload()}} className= "px-3 text-white font-bold bg-[#2563eb] p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-blue-800"><i className="fa-solid fa-arrows-rotate"></i> Refresh</button>
                         <button id="btnDeleteSelected" onClick={handleConfirmDelete} className= "w-24 text-white font-bold bg-red-500 p-2 rounded hover:cursor-pointer flex items-center justify-center gap-2 hover:bg-red-800"><i className="fa-solid fa-trash"></i>Xoá</button>
@@ -308,67 +237,64 @@ useEffect(() => {
                         <div className="border sticky top-1 text-black font-bold text-[12px] uppercase tracking-[0.05em] border-slate-300 rounded-lg bg-slate-50 w-80 mr-1 h-fit">
                         <div className="font-bold text-[12px] font-bold mb-4 bg-[#2563eb] text-white w-full rounded-t p-3">Bộ lọc</div>
                         <div className="px-4 pb-4 h-fit flex flex-col justify-between">
-                        <div className="mb-4 flex justify-between">
-                            <label>Ngày sinh:</label>
-                            <input type="date" name="dob" 
-                            value={objectFilter.dob}
-                             onChange={handleInputChange}
-                              />
-                        </div>
+                            <div className="mb-4 flex justify-between">
+                                <label>Ngày sinh:</label>
+                                <input type="date" name="dob" 
+                                value={objectSearch.dob}
+                                onChange={handleInputChange}
+                                />
+                            </div>
 
-                        <div className="mb-4 flex justify-between">
-                            <label>Giới tính:</label>
-                            <select name="gender" 
-                            value={objectFilter.gender} 
-                            onChange={handleInputChange}
-                            >
-                            <option value="">Tất cả</option>
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                            <option value="Khác">Khác</option>
-                            </select>
-                        </div>
+                            <div className="mb-4 flex justify-between">
+                                <label>Giới tính:</label>
+                                <select name="gender" 
+                                value={objectSearch.gender} 
+                                onChange={handleInputChange}
+                                >
+                                <option value="">Tất cả</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                                </select>
+                            </div>
 
-                        <div className="mb-4 flex justify-between">
-                            <label>Địa chỉ:</label>
-                            <select name="province" 
-                            value={objectFilter.provinceId}
-                             onChange={handleInputChange}
-                             className="w-[70%] text-end"
-                             >
-                             <option value="" >Tất cả</option>
-                            {provinces.map(province => (
-                                <option key={province.code} value={province.code}>{province.name}</option>
-                            ))}
-                            </select>
-                        </div>
+                            <div className="mb-4 flex justify-between">
+                                <label>Địa chỉ:</label>
+                                <select name="province" 
+                                value={objectSearch.province}
+                                onChange={handleInputChange}
+                                className="w-[70%] text-end"
+                                >
+                                <option value="" >Tất cả</option>
+                                {provinces.map(province => (
+                                    <option key={province.code} value={province.name}>{province.name}</option>
+                                ))}
+                                </select>
+                            </div>
 
-                        <div className="mt-4 flex w-full justify-between">
-                            <button 
-                            onClick={applyFilter} 
+                            <div className="mt-4 flex w-full justify-between">
                             
-                            className="bg-green-500 text-white px-4 py-2 rounded mr-2 hover:cursor-pointer">Áp dụng</button>
-                            <button 
-                            onClick={resetFilter} 
-                            
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:cursor-pointer">Xóa lọc</button>
                         </div>
                         </div>
                         </div>
                     )}
                         <div className="w-full bg-white flex flex-col items-center min-h-140 rounded ">
-                        <div className="w-full rounded-t bg-[#2563eb] text-white font-bold text-[12px] uppercase tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-3.75 items-center px-5 py-3">
-                            <input type="checkbox" checked={checkAll} onChange={handleCheckAll}/>
-                            <div className="name flex items-center gap-3">Họ Tên {
-                                isUpName ? <i className="fa-solid fa-arrow-up-short-wide cursor-pointer" onClick={() => setIsUpName(!isUpName)}></i> : <i className="fa-solid fa-arrow-down-wide-short cursor-pointer" onClick={() => setIsUpName(!isUpName)}></i>
-                            }</div>
-                            <div className="sdt">SDT</div>
-                            <div className="email">Email</div>
-                            <div className="dateOfBirth">Ngày Sinh</div>
-                            <div className="gender">Giới tính</div>
-                            <div className="address">Quê quán</div>
-                            <div className="thaoTac">Thao tác</div>
-                        </div>
+                            <div className="w-full rounded-t bg-[#2563eb] text-white font-bold text-[12px] uppercase tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-3.75 items-center px-5 py-3">
+                                <input type="checkbox" 
+                                checked={checkAll} onChange={handleCheckAll}
+                                />
+                                <div className="name flex items-center gap-3">Họ Tên {
+                                    objectSearch.sortBy === 'HoTenDayDu' ? <i className="fa-solid fa-arrow-up-short-wide cursor-pointer" onClick={() => setObjectSearch({...objectSearch, sortBy: ''})}></i> : <i className="fa-solid fa-arrow-down-wide-short cursor-pointer" onClick={() => setObjectSearch({...objectSearch, sortBy: 'HoTenDayDu'})}></i>
+                                }</div>
+                                <div className="sdt">SDT</div>
+                                <div className="email">Email</div>
+                                <div className="dateOfBirth">Ngày Sinh</div>
+                                <div className="gender">Giới tính</div>
+                                <div className="address">Quê quán</div>
+                                <div className="thaoTac">Thao tác</div>
+                            </div>
+
+                            
                         <div>
                             {confirmDelete && (
                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -383,69 +309,76 @@ useEffect(() => {
                             )}
                         </div>
                         <div className="w-full border border-slate-300">
-                        {customers.length>0 ?customers.map(customer => {
-                            return (
-                                <div className="bg-white text-black font-bold text-[12px] tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px]">
-                                <input type="checkbox"
-                                        checked={customer.isChecked || false} 
-                                        onChange={() => handleCheckItem(customer.id)}
-                                />
-                                <div className="name">{customer.hoTenDayDu}</div>
-                                <div className="sdt">{customer.sdt}</div>
-                                <div className="email">{customer.email}</div>
-                                <div className="dateOfBirth">{formatDate(customer.dateOfBirth)}</div>
-                                <div className="gender">{customer.gender}</div>
-                                <div className="address">{customer.province} - {customer.district} - {customer.ward}</div>
-                                <button className="bg-yellow-500 text-white px-2 py-1 rounded hover:cursor-pointer hover:bg-yellow-600" onClick={() => handleEdit(customer.id)}>Sửa</button>
+                            {customers.length>0 ?customers.map(customer => {
+                                return (
+                                    <div className="bg-white text-black font-bold text-[12px] tracking-[0.05em]  grid grid-cols-[50px_1.5fr_1fr_1fr_1fr_0.8fr_1.5fr_100px] gap-[15px] items-center px-[20px] py-[12px] "> 
+                                    <input type="checkbox"
+                                            checked={customer.isChecked || false} 
+                                            onChange={() => handleCheckItem(customer.id)}
+                                    />
+                                    <div className="name">{customer.hoTenDayDu}</div>
+                                    <div className="sdt">{customer.sdt}</div>
+                                    <div className="email">{customer.email}</div>
+                                    <div className="dateOfBirth">{customer.dateOfBirth}</div>
+                                    <div className="gender">{customer.gender}</div>
+                                    <div className="address">{customer.province} - {customer.district} - {customer.ward}</div>
+                                    <button className="bg-yellow-500 text-white px-2 py-1 rounded hover:cursor-pointer hover:bg-yellow-600" onClick={() => handleEdit(customer.id)}>Sửa</button>
+                                </div>
+                                )
+                            }): <div className="text-center p-10">Không có dữ liệu</div>}`
+                            {totalPages > 1 && (
+                            <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full bg-gray-50 border-t border-gray-100">
+                                <div></div>
+                                <div className="ursor-pointer  p-4 bg-gray-50 border-t border-gray-100 flex justify-center items-center gap-2">
+                                    <button 
+                                    onClick={() => setObjectSearch(prev => ({ ...prev, page: 1 }))}
+                                    disabled={objectSearch.page == 1}
+                                    className={`cursor-pointer px-4 py-2 rounded-md text-sm font-medium transition-colors ${objectSearch.page == 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'}`}
+                                    >
+                                        Đầu
+                                    </button>
+
+                                    <div className="flex gap-1">
+                        
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => setObjectSearch(prev => ({ ...prev, page: i + 1 }))}
+                                                className={`cursor-pointer w-8 h-8 rounded-md text-sm font-medium transition-colors ${objectSearch.page === i + 1 ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'}`}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        )).slice(Math.max(0, objectSearch.page - 3), Math.min(totalPages, objectSearch.page + 2))}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => setObjectSearch(prev => ({ ...prev, page: totalPages }))}
+                                        disabled={objectSearch.page == totalPages || totalPages < 1}
+                                        className={`cursor-pointer px-4 py-2 rounded-md text-sm font-medium transition-colors ${objectSearch.page == totalPages || totalPages < 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'}`}
+                                    >
+                                        Cuối
+                                    </button>
+                                </div>
+                                <div className="flex justify-center items-center p-3 rounded justify-self-end gap-1 text-sm font-medium transition-colors">
+                                    Số bản ghi:
+                                    <input 
+                                    type="number"
+                                    value={pageSizeSate}
+                                    onChange={(e)=> {setPageSizeState(e.target.value)}}
+                                    onKeyPress = {e => e.key == 'Enter' && handleSearch(pageSizeSate)}
+                                    onBlur={() => {handleSearch(pageSizeSate)}}
+                                    className="cursor-pointer w-20 px-2 h-8 rounded-md text-sm font-medium transition-colors bg-white text-gray-700 hover:bg-gray-100 border border-gray-300" placeholder="So customer"></input>
+                                </div>
                             </div>
-                            )
-                        }): <div className="text-center p-10">Không có dữ liệu</div>}
+                        )}
+                        
                             
                         </div>
                     </div>
                     </div>
+                    
                     <div className="flex gap-2 mt-4">
-                    {isSearching ? (
-                      <>
-                        <button 
-                        disabled={currentPageSearch == 1}
-                        onClick={() => setCurrentPageSearch(prev => prev - 1)}
-                        className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
-                    >
-                        Trước
-                    </button>
-
-                    <span className="py-2">{totalPagesSearch > 0 ? `Trang ${currentPageSearch} / ${totalPagesSearch}` : "Không có dữ liệu"}</span>
-
-                    <button 
-                        disabled={currentPageSearch == totalPagesSearch || totalPagesSearch < 1}
-                        onClick={() => setCurrentPageSearch(prev => prev + 1)}
-                        className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
-                    >
-                        Sau
-                    </button>
-                      </>   
-                    ) : (
-                        <>
-                            <button 
-                        disabled={currentPage == 1}
-                        onClick={() => setCurrentPage(prev => prev - 1)}
-                        className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
-                    >
-                        Trước
-                    </button>
-
-                    <span className="py-2">{totalPages > 0 ? `Trang ${currentPage} / ${totalPages}` : "Không có dữ liệu"}</span>
-
-                    <button 
-                        disabled={currentPage == totalPages || totalPages < 1}
-                        onClick={() => setCurrentPage(prev => prev + 1)}
-                        className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50 hover:cursor-pointer"
-                    >
-                        Sau
-                    </button>
-                        </>
-                    )}
+                    
                 </div>
 
             </div>
@@ -453,4 +386,4 @@ useEffect(() => {
     )
 }
 
-export default List
+export default List;

@@ -54,18 +54,18 @@ const Form = ({url}) => {
             const formData = new FormData();
             formData.append('file', e.target.files[0]);
 
-            fetch(`${url.urlExpress}/api/upload`, {
+            fetch(`${url.urlASP}/api/customer/upload`, {
                 method: 'POST',
                 body: formData
             })
             .then(res => res.json())
             .then(data => {
                 if (data) {
-                    console.log('File uploaded successfully');
-                    console.log('data.dataTrue:', data.dataTrue);
-                    console.log('data.dataFalse:', data.dataFalse);
-                    console.log('data.dataTrung:', data.dataTrung);
-                    navigate('/log', { state: { dataTrue: data.dataTrue, dataFalse: data.dataFalse, dataTrung: data.dataTrung, hint: '1' } });
+                    console.log(data);
+                    // console.log('data.dataTrue:', data.dataTrue);
+                    // console.log('data.dataFalse:', data.dataFalse);
+                    // console.log('data.dataTrung:', data.dataTrung);
+                    navigate('/log', { state: { dataTrue: data.dataTrue, dataFalse: data.dataFalse, dataTrung: data.dataTrung } });
                     // Handle successful upload
                 }
             })
@@ -235,7 +235,7 @@ const Form = ({url}) => {
             tenDem: tenDem2,
             hoTenDayDu: hoTenDayDu2
         };
-        fetch(`${url.urlASP}/api/form/add`, {
+        fetch(`${url.urlASP}/api/customer/add`, {
             method: 'POST',
             headers: {
             'Content-Type': 'application/json'

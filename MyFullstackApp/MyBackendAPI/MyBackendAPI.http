@@ -1,6 +1,56 @@
-@MyBackendAPI_HostAddress = http://localhost:5066
+@MyBackendAPI_HostAddress = https://localhost:5066
 
 GET {{MyBackendAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 
+###
+POST {{MyBackendAPI_HostAddress}}/api/customer/add
+Content-Type: application/json
+
+{
+    "Ho": "Nguyen",
+    "Ten": "Van A",
+    "TenDem": "Van",
+    "HoTenDayDu": "Nguyen Van A",
+    "Email": "nguyenvana@example.com",
+    "Sdt": "0123456789",
+    "DateOfBirth": "1990-01-01",
+    "Gender": "Male",
+    "Province": "Ha Noi",
+    "District": "Ba Dinh",
+    "Ward": "Phuong 1"
+}
+###
+GET {{MyBackendAPI_HostAddress}}/api/customer/search?sortBy=HoTenDayDu&page=2&pageSize=2
+Content-Type: application/json
+
+###
+POST  {{MyBackendAPI_HostAddress}}/api/customer/delete
+Content-Type: application/json
+
+[
+    "2d97853b-2d36-41d9-ad6e-0dbc178c3c6f"
+]
+###
+GET {{MyBackendAPI_HostAddress}}/api/customer/edit/02af340b-88a3-4881-a2ed-0cf03aa1dc67
+Content-Type: application/json
+
+###
+PUT {{MyBackendAPI_HostAddress}}/api/customer/updated
+Content-Type: application/json
+
+{
+    "Id": "02af340b-88a3-4881-a2ed-0cf03aa1dc67",
+    "Ho": "Nguyen",
+    "Ten": "Van B",
+    "TenDem": "Van",
+    "HoTenDayDu": "Nguyen Van B",
+    "Email": "nguyenvanb@example.com",
+    "Sdt": "0123456789",
+    "DateOfBirth": "1990-01-01",
+    "Gender": "Male",
+    "Province": "Ha Noi",
+    "District": "Ba Dinh",
+    "Ward": "Phuong 1"
+}
 ###

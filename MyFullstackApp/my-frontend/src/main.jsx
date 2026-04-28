@@ -6,6 +6,7 @@ import Home from './Pages/Home.jsx'
 import Quiz from './Pages/Quiz.jsx'
 import NotFound from './Pages/NotFound.jsx'
 import List from './Pages/List.jsx'
+import Test from './Pages/List2.jsx'
 import Form from './Pages/Form.jsx'
 import Edit from './Pages/Edit.jsx'
 import ShowLog from './Pages/ShowLog.jsx'
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
       {
         path: "list/", // Trang chi tiết: localhost:5173/list
         element: <List url={{ urlASP: URL, urlExpress: URL_Express }} />,
+      },
+      {
+        path: "test/", // Trang chi tiết: localhost:5173/list
+        element: <Test url={{ urlASP: URL, urlExpress: URL_Express }} />,
       },
       {
         path: "form/", // Trang chi tiết: localhost:5173/list
