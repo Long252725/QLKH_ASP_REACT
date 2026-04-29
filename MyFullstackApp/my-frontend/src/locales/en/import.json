@@ -1,0 +1,23 @@
+{
+    "title": "Data Processing Results",
+    "label_success": "Success",
+    "label_duplicate": "Duplicates",
+    "label_fail": "Failed",
+    "download_data_duplicate": "Download Duplicates",
+    "download_data_fail": "Download Error Data",
+    "download_data_success": "Download Successful Data",
+    "back_to_list": "Back to List",
+    "add": "Add New",
+    "list": "List",
+    "page": "Page",
+    "page_back": "Previous",
+    "page_next": "Next",
+    "ho_ten": "Full Name",
+    "date_of_birth": "Date of Birth",
+    "sdt": "Phone Number",
+    "email": "Email",
+    "address": "Address",
+    "logs": {
+        "noData": "No data available to display!"
+    }
+}

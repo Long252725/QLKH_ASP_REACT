@@ -1,16 +1,10 @@
 // App.jsx
 import { Outlet, Link } from "react-router-dom";
-
+import Header from "./Components/header";
 function App() {
   return (
     <div className="main">
-      {/* <nav>
-        <Link to="/">Trang chủ</Link> | 
-        <Link to="/quiz/101">Làm Quiz</Link>
-      </nav> */}
-      
-
-      {/* Outlet là nơi nội dung của Home hoặc Quiz sẽ hiển thị vào đây */}
+      <Header />
       <main>
         <Outlet />
       </main>

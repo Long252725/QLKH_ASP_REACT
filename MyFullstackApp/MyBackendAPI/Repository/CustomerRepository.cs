@@ -2,7 +2,6 @@ using MiniExcelLibs;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Globalization;
 using MyBackendAPI.Helpers;
 namespace MyBackendAPI.Repository
@@ -90,6 +89,11 @@ namespace MyBackendAPI.Repository
                     UniqueData.Add(item.Original);
                 }
             }
+            foreach (var item in DataTrung)
+                {
+                    item.HoTenDayDu = $"{item.Ho?.Trim() ?? ""} {item.TenDem?.Trim() ?? ""} {item.Ten?.Trim() ?? ""}".Trim();
+                    item.Gender = StringHelper.FormatName(item.Gender ?? string.Empty);
+                }
             return (UniqueData, DataTrung);
         }
         public static async Task<(List<CustomerVM> dataTrue, List<CustomerVM> dataFalse, List<CustomerVM> dataTrung)> handleNomarlizeData(List<CustomerVM> data)
@@ -111,10 +115,10 @@ namespace MyBackendAPI.Repository
             var dataTrue = new List<CustomerVM>();
             var dataFalse = new List<CustomerVM>();
             // handle Province
-            foreach(var item in uniqueData)
+            foreach(var item in uniqueData)         
             {
                 string pKey = CleanTextHelper.CleanText(item.Province);
-                LocationNode provinceInfo = null;
+                LocationNode? provinceInfo = null;
                 if(!String.IsNullOrEmpty(pKey) && Map.TryGetValue(pKey, out provinceInfo))
                 {
                     item.Province = provinceInfo.OriginalName;
@@ -136,8 +140,9 @@ namespace MyBackendAPI.Repository
                 }
                 // handle District
                 var dKey = CleanTextHelper.CleanText(item.District);
-                LocationNode districtInfo = null;
-                if(!String.IsNullOrEmpty(dKey) && Map.TryGetValue(dKey, out districtInfo))
+                Console.WriteLine(dKey);
+                LocationNode? districtInfo = null;
+                if (!string.IsNullOrEmpty(dKey) && provinceInfo != null && provinceInfo.Children.TryGetValue(dKey, out districtInfo))
                 {
                     item.District = districtInfo.OriginalName;
                     if(districtInfo.Children.Count == 0)
@@ -158,26 +163,39 @@ namespace MyBackendAPI.Repository
                 }
                 // handle Ward
                 var wKey = CleanTextHelper.CleanText(item.Ward);
-                LocationNode wardInfo = null;
-                if(!String.IsNullOrEmpty(wKey) && Map.TryGetValue(wKey, out wardInfo))
+                LocationNode? wardInfo = null;
+                if (!string.IsNullOrEmpty(wKey) && districtInfo != null && districtInfo.Children.TryGetValue(wKey, out wardInfo))
                 {
                     item.Ward = wardInfo.OriginalName;
                 } else
                 {
                     item.Ward = "";
                 }
+                bool isError = false;
                 // Handle Ho, Ten, TenDem, Gender
-                string formattedGender = StringHelper.FormatName(item.Gender);
-                Console.WriteLine(formattedGender);
-                string formattedHo = StringHelper.FormatName(item.Ho);
-                string formattedTenDem = StringHelper.FormatName(item.TenDem);
-                string formattedTen = StringHelper.FormatName(item.Ten);
-                // handle SDT
-                string rawSdt = item.Sdt.Trim();
-                if(rawSdt.Length > 0 && !Regex.IsMatch(rawSdt, @"^[0-9\s\s\-()+]+$"))
+                string formattedGender = StringHelper.FormatName(item.Gender ?? string.Empty);
+                if(!string.IsNullOrEmpty(formattedGender) && formattedGender != "Nam" && formattedGender != "Nữ" && formattedGender != "Khác")
                 {
-                    dataFalse.Add(item);
-                    continue;
+                    isError = true;
+                    item.ErrorFields.Add("Gender");
+                }
+                string formattedHo = StringHelper.FormatName(item.Ho ?? string.Empty);
+                if(string.IsNullOrEmpty(formattedHo)) {
+                    isError = true;
+                    item.ErrorFields.Add("Ho");
+                }
+                string formattedTenDem = StringHelper.FormatName(item.TenDem ?? string.Empty);
+                string formattedTen = StringHelper.FormatName(item.Ten ?? string.Empty);
+                if(string.IsNullOrEmpty(formattedTen)) {
+                    isError = true;
+                    item.ErrorFields.Add("Ten");
+                }
+                // handle SDT
+                string rawSdt = item.Sdt?.Trim() ?? string.Empty;
+                if(rawSdt.Length > 0 && !Regex.IsMatch(rawSdt, @"^0[0-9]{9}$")) // SDT phải bắt đầu bằng 0 và có 10 số
+                {
+                    item.ErrorFields.Add("Sdt");
+                    isError = true;
                 }
                 // Format SDT: 9 số thì thêm 0, 10 số giữ nguyên
                 string formattedSdt = rawSdt;
@@ -186,44 +204,73 @@ namespace MyBackendAPI.Repository
                     formattedSdt = "0" + rawSdt;
                 }
                 // Format Email
-                string rawEmail = item.Email.ToLower().Trim();
+                string rawEmail = item.Email?.ToLower().Trim() ?? "";
                 string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|vn|net)$";
                 if(rawEmail.Length > 0 && !Regex.IsMatch(rawEmail, emailPattern))
                 {
-                    dataFalse.Add(item);
-                    continue;
+                    item.ErrorFields.Add("Email");
+                    isError = true;
                 }
                 string formattedEmail = rawEmail;
-
-                dataTrue.Add(new CustomerVM
+                // Format DateOfBirth
+                string formattedDateOfBirth = FormatDateHelper.FormatDate(item.DateOfBirth);
+                if(!string.IsNullOrEmpty(item.DateOfBirth) && string.IsNullOrEmpty(formattedDateOfBirth))
                 {
-                    Ho = formattedHo,
-                    Ten = formattedTen,
-                    TenDem = formattedTenDem,
-                    HoTenDayDu = formattedHo +" "+ formattedTenDem +" "+ formattedTen,
-                    Email = formattedEmail,
-                    Sdt = formattedSdt,
-                    DateOfBirth = FormatDateHelper.FormatDate(item.DateOfBirth),
-                    Gender = formattedGender,
-                    Province = item.Province.Trim(),
-                    District = item.District.Trim(),
-                    Ward = item.Ward.Trim() 
-                });
-            }    
+                    item.ErrorFields.Add("DateOfBirth");
+                    isError = true;
+                }
+                if (isError)
+                {
+                    dataFalse.Add(new CustomerVM
+                    {
+                        Ho = formattedHo,
+                        Ten = formattedTen,
+                        TenDem = formattedTenDem,
+                        HoTenDayDu = formattedHo +" "+ formattedTenDem +" "+ formattedTen,
+                        Email = formattedEmail,
+                        Sdt = formattedSdt,
+                        DateOfBirth = item.DateOfBirth,
+                        Gender = formattedGender,
+                        Province = item.Province.Trim(),
+                        District = item.District.Trim(),
+                        Ward = item.Ward.Trim(),
+                        ErrorFields = item.ErrorFields    
+                    });
+                    
+                } else {
+                    dataTrue.Add(new CustomerVM
+                    {
+                        Ho = formattedHo,
+                        Ten = formattedTen,
+                        TenDem = formattedTenDem,
+                        HoTenDayDu = formattedHo +" "+ formattedTenDem +" "+ formattedTen,
+                        Email = formattedEmail,
+                        Sdt = formattedSdt,
+                        DateOfBirth = formattedDateOfBirth,
+                        Gender = formattedGender,
+                        Province = item.Province.Trim(),
+                        District = item.District.Trim(),
+                        Ward = item.Ward.Trim() 
+                    });
+                }
+                
+                
+            }   
             return (dataTrue, dataFalse, dataTrung);
         }
-        private readonly MyDbContext _context;
-        public CustomerRepository(MyDbContext context)
-        {
-            _context = context;
-        }
+    private readonly MyDbContext _context;
+    public CustomerRepository(MyDbContext context)
+    {
+        _context = context;
+    }
 
     public object Search(
         string? keyword, 
         string? province, 
         string? sortBy, 
         string? gender,
-        string? dob,
+        string? dobFrom,
+        string? dobTo,
         int page = 1, 
         int pageSize = 10
         )
@@ -232,9 +279,16 @@ namespace MyBackendAPI.Repository
 
         if (!string.IsNullOrEmpty(keyword))
         {
-            query = query.Where(c => c.HoTenDayDu.Contains(keyword));
+            if(Regex.IsMatch(keyword, @"^\d{0,9}$")) // Nếu keyword có dạng số điện thoại (bắt đầu bằng 0 và có tối đa 10 chữ số)
+            {
+                query = query.Where(c => c.Sdt.Contains(keyword));
+            }
+             else // Mặc định tìm kiếm theo tên đầy đủ
+             {
+                 query = query.Where(c => c.HoTenDayDu.Contains(keyword));
+             }
         }
-
+       
         if (!string.IsNullOrEmpty(province))
         {
             query = query.Where(c => c.Province == province);
@@ -244,21 +298,46 @@ namespace MyBackendAPI.Repository
             query = query.Where(c => c.Gender == gender);
         }
 
-        // if (!string.IsNullOrEmpty(dob))
-        // {
-        //     query = query.Where(c => c.DateOfBirth == DateTime.Parse(dob));
-        // }
+        if (!string.IsNullOrEmpty(dobFrom) && !string.IsNullOrEmpty(dobTo))
+        {
+            var fromDate = DateTime.Parse(dobFrom); // 2026-04-09 00:00:00
+            var toDate = DateTime.Parse(dobTo).AddDays(1); // 2026-04-19 00:00:00
+
+            // Lấy từ 00:00 ngày 09 đến TRƯỚC 00:00 ngày 19 (tức là hết ngày 18)
+            query = query.Where(c => c.DateOfBirth >= fromDate && c.DateOfBirth < toDate);
+        }
+        if (!string.IsNullOrEmpty(dobFrom) && string.IsNullOrEmpty(dobTo))
+        {
+            var fromDate = DateTime.Parse(dobFrom);
+            query = query.Where(c => c.DateOfBirth >= fromDate);
+        }
+        if (string.IsNullOrEmpty(dobFrom) && !string.IsNullOrEmpty(dobTo))
+        {
+            var toDate = DateTime.Parse(dobTo).AddDays(1);
+            query = query.Where(c => c.DateOfBirth < toDate);
+        }
 
         if (!string.IsNullOrEmpty(sortBy))
         {
-            if (sortBy.Equals("HoTenDayDu", StringComparison.OrdinalIgnoreCase))
+            if (sortBy.Equals("HoTenDayDu_asc", StringComparison.OrdinalIgnoreCase))
             {
                 query = query.OrderBy(c => c.HoTenDayDu);
             }
-            else if (sortBy.Equals("DateOfBirth", StringComparison.OrdinalIgnoreCase))
+            else if (sortBy.Equals("HoTenDayDu_desc", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(c => c.HoTenDayDu);
+            }
+            else if (sortBy.Equals("DateOfBirth_asc", StringComparison.OrdinalIgnoreCase))
             {
                 query = query.OrderBy(c => c.DateOfBirth);
             }
+            else if (sortBy.Equals("DateOfBirth_desc", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(c => c.DateOfBirth);
+            }
+        } else
+        {
+            query = query.OrderByDescending(c => c.CreatedAt);
         }
 
         var listItems = query.Skip((page - 1) * pageSize)
@@ -272,7 +351,7 @@ namespace MyBackendAPI.Repository
                         HoTenDayDu = c.HoTenDayDu,
                         Email = c.Email,
                         Sdt = c.Sdt,
-                        DateOfBirth = c.DateOfBirth,
+                        DateOfBirth = FormatDateHelper.FormatDate(c.DateOfBirth),
                         Gender = c.Gender,
                         Province = c.Province,
                         District = c.District,
@@ -299,7 +378,7 @@ namespace MyBackendAPI.Repository
                 HoTenDayDu = $"{customer.Ho} {customer.TenDem} {customer.Ten}",
                 Email = customer.Email,
                 Sdt = customer.Sdt,
-                DateOfBirth = customer.DateOfBirth,
+                DateOfBirth = DateTime.TryParse(customer.DateOfBirth, out var dob) ? dob : (DateTime?)null,
                 Gender = customer.Gender,
                 Province = customer.Province,
                 District = customer.District,
@@ -316,7 +395,7 @@ namespace MyBackendAPI.Repository
                     HoTenDayDu = entity.HoTenDayDu,
                     Email = entity.Email,
                     Sdt = entity.Sdt,
-                    DateOfBirth = entity.DateOfBirth,
+                    DateOfBirth = FormatDateHelper.FormatDate(entity.DateOfBirth),
                     Gender = entity.Gender,
                     Province = entity.Province,
                     District = entity.District,
@@ -345,7 +424,7 @@ namespace MyBackendAPI.Repository
             entity.HoTenDayDu = $"{customer.Ho} {customer.TenDem} {customer.Ten}";
             entity.Email = customer.Email;
             entity.Sdt = customer.Sdt;
-            entity.DateOfBirth = customer.DateOfBirth;
+            entity.DateOfBirth = DateTime.TryParse(customer.DateOfBirth, out var dob) ? dob : (DateTime?)null;
             entity.Gender = customer.Gender;
             entity.Province = customer.Province;
             entity.District = customer.District;
@@ -361,7 +440,7 @@ namespace MyBackendAPI.Repository
                 HoTenDayDu = entity.HoTenDayDu,
                 Email = entity.Email,
                 Sdt = entity.Sdt,
-                DateOfBirth = entity.DateOfBirth,
+                DateOfBirth = FormatDateHelper.FormatDate(entity.DateOfBirth),
                 Gender = entity.Gender,
                 Province = entity.Province,
                 District = entity.District,
@@ -385,7 +464,7 @@ namespace MyBackendAPI.Repository
                 HoTenDayDu = entity.HoTenDayDu,
                 Email = entity.Email,
                 Sdt = entity.Sdt,
-                DateOfBirth = entity.DateOfBirth,
+                DateOfBirth = FormatDateHelper.FormatDate(entity.DateOfBirth),
                 Gender = entity.Gender,
                 Province = entity.Province,
                 District = entity.District,
@@ -407,17 +486,12 @@ namespace MyBackendAPI.Repository
     using (var stream = file.OpenReadStream())
     {
         var rows = stream.Query<CustomerVM>().ToList();
-        foreach (var row in rows)
-        {
-        // Tự gán ID mới cho từng bản ghi trước khi lưu vào DB
-        row.Id = Guid.NewGuid(); 
-        }
         var locdata = LocData(rows);
-        Console.WriteLine(locdata.UniqueData);
 
         var dataNomarlized = await handleNomarlizeData(rows);
 
-        // Xử lý logic (Ví dụ: Lưu vào Database)
+        // Xử lý logic (Ví dụ: Lưu vào Database)    
+        
         
         _context.Customers.AddRange(dataNomarlized.dataTrue.Select(data => new Customer
         {
@@ -427,7 +501,7 @@ namespace MyBackendAPI.Repository
                 HoTenDayDu = data.HoTenDayDu,
                 Email = data.Email,
                 Sdt = data.Sdt,
-                DateOfBirth = data.DateOfBirth,
+                DateOfBirth = DateTime.TryParse(data.DateOfBirth, out var dob) ? dob : null,
                 Gender = data.Gender,
                 Province = data.Province,
                 District = data.District,
@@ -437,6 +511,7 @@ namespace MyBackendAPI.Repository
 
         return new
         {
+            sucess = true,
             dataTrue = dataNomarlized.dataTrue,
             dataFalse = dataNomarlized.dataFalse,
             dataTrung = dataNomarlized.dataTrung

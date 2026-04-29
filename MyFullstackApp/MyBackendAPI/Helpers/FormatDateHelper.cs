@@ -37,8 +37,11 @@ namespace MyBackendAPI.Helpers
             }
 
             // Trả về định dạng DD-MM-YYYY
-            return dt.ToString("dd-MM-yyyy");
-        }}
+            return dt.ToString("yyyy-MM-dd");
+        
+        }
+        
+        }
 }
 
 

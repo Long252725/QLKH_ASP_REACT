@@ -1,0 +1,43 @@
+{
+    "search": "Tìm",
+    "placeholder_search": "Tìm kiếm theo tên hoặc số điện thoại",
+    "refresh": "Làm mới",
+    "delete": "Xóa",
+    "confirm_delete": "Xác nhận xoá {{count}} khách hàng?",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "add": "Thêm",
+    "filter": "Bộ lọc",
+    "filter_dateOfBirth": "Ngày sinh",
+    "filter_from": "Từ ngày:",
+    "filter_to": "Đến ngày:",
+    "filter_gender": "Giới tính ",
+    "filter_gender_all": "Tất cả",
+    "filter_gender_male": "Nam",
+    "filter_gender_female": "Nữ",
+    "filter_gender_other": "Khác",
+    "filter_address": "Địa chỉ ",
+    "filter_address_all": "Tất cả",
+    "clear_filter": "Xóa bộ lọc",
+    "table_name": "Họ và tên",
+    "table_email": "Email",
+    "table_phone": "SDT",
+    "table_dateOfBirth": "Ngày sinh",
+    "table_gender": "Giới tính",
+    "table_address": "Quê quán",
+    "table_action": "Thao tác",
+    "edit": "Sửa",
+    "first": "Đầu",
+    "last": "Cuối",
+    "page_size": "Số bản ghi: ",
+    "warming_delete": "Hành động này không thể hoàn tác. Bạn có chắc muốn tiếp tục không?",
+
+    "logs": {
+        "showAlert": "Bạn chưa chọn khách hàng nào !",
+        "isLoading": "Đang tải dữ liệu...",
+        "showSuccess": "Cập nhật thành công !",
+        "showFail": "Thao tác thất bại !",
+        "noData": "Không có dữ liệu khách hàng nào !"
+
+    }
+}

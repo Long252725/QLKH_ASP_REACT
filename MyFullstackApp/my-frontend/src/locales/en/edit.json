@@ -1,0 +1,29 @@
+{
+    "title": "Edit Customer",
+    "ho": "Last Name",
+    "placeholder_ho": "Ex: Nguyen",
+    "ten": "First Name",
+    "placeholder_ten": "Ex: Van A",
+    "ten_dem": "Middle Name",
+    "placeholder_ten_dem": "Ex: Thi",
+    "email": "Email Address",
+    "placeholder_email": "example@gmail.com",
+    "sdt": "Phone Number",
+    "placeholder_sdt": "Enter phone number",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "date_of_birth": "Date of Birth",
+
+    "logs": {
+        "dateOfBirth_1": "Invalid date of birth",
+        "dateOfBirth_2": "Date of birth cannot be in the future",
+        "sdt_1": "Phone number must be 10 digits",
+        "sdt_2": "Phone number must start with 0",
+        "email_1": "Invalid email format",
+        "ho_ten_1": "Full name cannot be empty",
+        "ho_1": "Please enter last name",
+        "ho_2": "Last name must not contain spaces",
+        "ten_1": "Please enter first name",
+        "ten_2": "First name must not contain special characters"
+    }
+}

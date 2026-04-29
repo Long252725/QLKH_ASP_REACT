@@ -1,0 +1,29 @@
+{
+    "title": "Chỉnh sửa khách Hàng",
+    "ho": "Họ:",
+    "placeholder_ho": "Ví dụ: Nguyễn",
+    "ten": "Tên:",
+    "placeholder_ten": "Ví dụ: Văn A",
+    "ten_dem": "Tên đệm:",
+    "placeholder_ten_dem": "Ví dụ: Thị",
+    "email": "Email:",
+    "placeholder_email": "example@gmail.com",
+    "sdt": "Số điện thoại:",
+    "placeholder_sdt": "Nhập số điện thoại",
+    "cancel": "Hủy bỏ",
+    "save": "Lưu Thay Đổi",
+    "date_of_birth": "Ngày sinh:",
+
+    "logs": {
+        "dateOfBirth_1": "Ngày sinh không hợp lệ",
+        "dateOfBirth_2": "Ngày sinh không được lớn hơn ngày hiện tại",
+        "sdt_1": "Số điện thoại phải có 10 chữ số",
+        "sdt_2": "Số điện thoại phải bắt đầu bằng số 0",
+        "email_1": "Email không đúng định dạng",
+        "ho_ten_1": "Họ và tên không được để trống",
+        "ho_1": "Vui lòng nhập họ",
+        "ho_2": "Họ không được chứa khoảng trắng",
+        "ten_1": "Vui lòng nhập tên",
+        "ten_2": "Tên không được chứa ký tự đặc biệt"
+    }
+}

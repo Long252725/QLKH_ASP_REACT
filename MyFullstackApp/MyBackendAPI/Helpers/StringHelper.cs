@@ -5,7 +5,7 @@ public static class StringHelper
 {
     public static string FormatName(string input)
     {
-        if (string.IsNullOrWhiteSpace(input)) return "";
+        if (string.IsNullOrEmpty(input)) return "";
 
         string clean = Regex.Replace(input, @"[^a-zA-ZÀ-ỹ\s]", "").Trim();
         if (string.IsNullOrEmpty(clean)) return "";

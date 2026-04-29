@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import {motion, AnimatePresence} from 'framer-motion'
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const Form = ({url}) => {
+    const { t } = useTranslation('form');
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         ho: '',
@@ -53,20 +55,27 @@ const Form = ({url}) => {
         if (e.target.name == 'fileInput' ){
             const formData = new FormData();
             formData.append('file', e.target.files[0]);
-
+            
+            setIsLoading(true);
             fetch(`${url.urlASP}/api/customer/upload`, {
                 method: 'POST',
                 body: formData
             })
             .then(res => res.json())
             .then(data => {
-                if (data) {
-                    console.log(data);
-                    // console.log('data.dataTrue:', data.dataTrue);
-                    // console.log('data.dataFalse:', data.dataFalse);
-                    // console.log('data.dataTrung:', data.dataTrung);
-                    navigate('/log', { state: { dataTrue: data.dataTrue, dataFalse: data.dataFalse, dataTrung: data.dataTrung } });
-                    // Handle successful upload
+                setIsLoading(false);
+                if (data.sucess) {
+                    setShowSucess(true);
+                    setTimeout(()=> {
+                        console.log(data);
+                        navigate('/log', { state: { dataTrue: data.dataTrue, dataFalse: data.dataFalse, dataTrung: data.dataTrung } });
+                                setShowSucess(false);
+                    }, 1000);
+                } else {
+                    setShowFail(true);
+                    setTimeout(()=> {
+                        setShowFail(false);
+                    }, 1000);
                 }
             })
             .catch(error => console.error('Error:', error));
@@ -84,13 +93,13 @@ const Form = ({url}) => {
             setBadInput(true);
             setErrors({
                 ...errors,
-                dateOfBirth: "Ngày sinh không hợp lệ"
+                dateOfBirth: t('logs.dateOfBirth_1')
             });
             } else if (new Date(e.target.value) >= new Date()) {
                 setBadInput(false);
                 setErrors({
                     ...errors,
-                    dateOfBirth: "Ngày sinh không được lớn hơn ngày hiện tại"
+                    dateOfBirth: t('logs.dateOfBirth_2')
                 });
             } else {
                 setBadInput(false);
@@ -104,12 +113,12 @@ const Form = ({url}) => {
             if (!/^0/.test(e.target.value) && e.target.value.length > 0) {
                 setErrors({
                     ...errors,
-                    sdt: "SDT cần bắt đầu bằng 0"
+                    sdt: t('logs.sdt_2')
                 });
             } else if (!/^0[0-9]{9}$/.test(e.target.value) && e.target.value.length > 0) {
                 setErrors({
                     ...errors,
-                    sdt: "SDT cần đủ 10 chữ số"
+                    sdt: t('logs.sdt_1')
                 });
             } else {
                 setErrors({
@@ -121,7 +130,7 @@ const Form = ({url}) => {
             if (e.target.value.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|vn|net)$/.test(e.target.value)) {
                 setErrors({
                     ...errors,
-                    email: "Email không đúng định dạng"
+                    email: t('logs.email_1')
                 });
             } else {
                 setErrors({
@@ -133,7 +142,7 @@ const Form = ({url}) => {
             if (!e.target.value) {
                 setErrors({
                     ...errors,
-                    [e.target.name]: "Họ và tên không được để trống"
+                    [e.target.name]: t('logs.ho_ten_1')
                 });
             } else {
                 setErrors({
@@ -197,18 +206,18 @@ const Form = ({url}) => {
     const dateObj = new Date(formData.dateOfBirth);
     const currentDate = new Date();
     if(badInput && !formData.dateOfBirth) {
-        newErrors.dateOfBirth = "Ngày sinh không hợp lệ";
+        newErrors.dateOfBirth = t('logs.dateOfBirth_1');
     }
     if(dateObj > currentDate) {
-        newErrors.dateOfBirth = "Ngày sinh không được lớn hơn ngày hiện tại";
+        newErrors.dateOfBirth = t('logs.dateOfBirth_2');
     }
-    if (!formData.ho.trim()) {newErrors.ho = "Vui lòng nhập họ"} else if (formData.ho.trim().includes(' ')) {newErrors.ho = "Họ không được chứa khoảng trắng"};
-    if (!formData.ten.trim()) {newErrors.ten = "Vui lòng nhập tên"} else if (formData.ten.trim().includes('.')) {newErrors.ten = "Tên không được chứa ký tự đặc biệt"}; 
+    if (!formData.ho.trim()) {newErrors.ho = t('logs.ho_1')} else if (formData.ho.trim().includes(' ')) {newErrors.ho = t('logs.ho_2')};
+    if (!formData.ten.trim()) {newErrors.ten = t('logs.ten_1')} else if (formData.ten.trim().includes('.')) {newErrors.ten = t('logs.ten_2')}; 
     if (formData.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|vn|net)$/.test(formData.email)) {
-        newErrors.email = "Email không đúng định dạng";
+        newErrors.email = t('logs.email_1');
     }
-    if (formData.sdt && !/^0[0-9]{9}$/.test(formData.sdt)) newErrors.sdt = "SDT cần đủ 10 chữ số";
-    if (formData.sdt && !/^0/.test(formData.sdt)) newErrors.sdt = "SDT cần bắt đầu phải bằng 0";
+    if (formData.sdt && !/^0[0-9]{9}$/.test(formData.sdt)) newErrors.sdt = t('logs.sdt_1');
+    if (formData.sdt && !/^0/.test(formData.sdt)) newErrors.sdt = t('logs.sdt_2');
 
     setErrors(newErrors);
     
@@ -235,6 +244,7 @@ const Form = ({url}) => {
             tenDem: tenDem2,
             hoTenDayDu: hoTenDayDu2
         };
+        setIsLoading(true);
         fetch(`${url.urlASP}/api/customer/add`, {
             method: 'POST',
             headers: {
@@ -244,10 +254,13 @@ const Form = ({url}) => {
         })
         .then(res => res.json())
         .then(() => {
-            setShowSucess(true)
+            setIsLoading(false);
+            setShowSucess(true);
             setTimeout(()=> {
-                setShowSucess(false)
-            }, 1000)
+                navigate('/list');
+            // Handle successful upload
+                setShowSucess(false);
+            }, 1000);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -279,7 +292,7 @@ const Form = ({url}) => {
                                 className="fixed top-5 right-5 z-50 flex items-center gap-2 justify-center bg-yellow-500 text-white px-5 py-2 rounded shadow-lg"
                             >
                                 <i className="fa-solid fa-circle-check"></i>
-                                <p>Đang xử lý...</p>
+                                <p>{t('logs.is_loading')}</p>
                             </motion.div>
                         )}
                     {showSucess && (
@@ -292,7 +305,7 @@ const Form = ({url}) => {
                             className="fixed top-5 right-5 z-50 flex items-center gap-2 justify-center bg-green-500 text-white px-5 py-2 rounded shadow-lg"
                         >
                             <i className="fa-solid fa-circle-check"></i>
-                            <p>Thao tác thành công!</p>
+                            <p>{t('logs.success')}</p>
                         </motion.div>
                     )}
 
@@ -306,7 +319,7 @@ const Form = ({url}) => {
                             className="fixed top-5 right-5 z-50 flex items-center gap-2 justify-center bg-red-500 text-white px-5 py-2 rounded shadow-lg"
                         >
                             <i className="fa-solid fa-circle-xmark"></i>
-                            <p>Thao tác thất bại!</p>
+                            <p>{t('logs.fail')}</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -317,8 +330,8 @@ const Form = ({url}) => {
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-4 backdrop-blur-md">
                             <i className="fa-solid fa-user-plus text-white text-2xl"></i>
                         </div>
-                        <h2 className="text-3xl font-extrabold text-white tracking-tight">Đăng Ký Khách Hàng</h2>
-                        <p className="text-blue-100 mt-2 text-sm">Vui lòng điền đầy đủ thông tin bên dưới để khởi tạo tài khoản mới</p>
+                        <h2 className="text-3xl font-extrabold text-white tracking-tight">{t('title')}</h2>
+                        <p className="text-blue-100 mt-2 text-sm">{t('note')}</p>
                     </div>
 
                     <div className="p-8 sm:p-10 space-y-8">
@@ -326,7 +339,7 @@ const Form = ({url}) => {
                         <div className="space-y-6">
                             <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                                 <i className="fa-solid fa-id-card text-blue-600"></i>
-                                <h3 className="font-bold text-slate-800 uppercase text-xs tracking-wider">Thông tin định danh</h3>
+                                <h3 className="font-bold text-slate-800 uppercase text-xs tracking-wider">{t('header_info_personal')}</h3>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -341,7 +354,7 @@ const Form = ({url}) => {
                                                     ? 'border-red-500 bg-red-50' 
                                                     : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'
                                                 } w-full border p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400`}
-                                        placeholder="Ví dụ: Nguyễn"/>
+                                        placeholder={t('placeholder_ho')}/>
                                         {errors.ho && <p className="text-red-500 text-xs mt-1 italic">{errors.ho}</p>}
 
                                 </div>
@@ -352,7 +365,7 @@ const Form = ({url}) => {
                                     
                                      id="tenDem" name="tenDem" onChange={handleChange} value={formData.tenDem} 
                                         className={` w-full border p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400`} 
-                                        placeholder="Ví dụ: Thị"/>
+                                        placeholder={t('placeholder_ten_dem')}/>
                                 </div>
                                 <div className="group">
                                     <label htmlFor="ten" className={`${errors.ten ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold mb-2 group-focus-within:text-blue-600 transition-colors`}>Tên<span className="text-red-500">*</span></label>
@@ -364,7 +377,7 @@ const Form = ({url}) => {
                                                     ? 'border-red-500 bg-red-50' 
                                                     : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'
                                                 } w-full border p-3 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400`} 
-                                        placeholder="Ví dụ: Văn A"/>
+                                        placeholder={t('placeholder_ten')}/>
                                         {errors.ten && <p className="text-red-500 text-xs mt-1 italic">{errors.ten}</p>}
                                 </div>
                             </div>
@@ -373,12 +386,12 @@ const Form = ({url}) => {
                         <div className="space-y-6">
                             <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                                 <i className="fa-solid fa-envelope-open-text text-blue-600"></i>
-                                <h3 className="font-bold text-slate-800 uppercase text-xs tracking-wider">Thông tin liên lạc</h3>
+                                <h3 className="font-bold text-slate-800 uppercase text-xs tracking-wider">{t('header_info_contact')}</h3>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="group">
-                                    <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-blue-600 transition-colors" >Email</label>
+                                    <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-blue-600 transition-colors" >{t('email')}</label>
                                     <div className="relative">
                                         <div className='flex items-center '>
                                             <span className={`absolute ${errors.email? 'mb-4.5' : ''} flex left-0 justify-center items-center inset-y-0 pl-3 text-slate-400`}>
@@ -387,7 +400,7 @@ const Form = ({url}) => {
                                         <input type="email" 
                                         maxLength={30}
                                         onBlur={handleBlur}
-                                        placeholder="example@gmail.com"
+                                        placeholder={t('placeholder_email')}
                                         onFocus={handleFocus} id="email" name="email" onChange={handleChange}  values={formData.email}
                                             className={` ${errors.email ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'}  w-full border pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100  outline-none transition-all bg-slate-50/50 focus:bg-white`} 
                                         />
@@ -397,7 +410,7 @@ const Form = ({url}) => {
                                     </div>
                                 </div>
                                 <div className="group">
-                                    <label htmlFor="sdt" className={`${errors.sdt ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold  mb-2  transition-colors`}>Số điện thoại</label>
+                                    <label htmlFor="sdt" className={`${errors.sdt ? 'text-red-500' : 'text-slate-700'} block text-sm font-bold  mb-2  transition-colors`}>{t('sdt')}</label>
                                     <div className="relative">
                                         <div className='flex items-center '>
                                             <span className={`absolute ${errors.sdt ? 'mb-4.5' : ''} flex left-0 justify-center items-center inset-y-0 pl-3 text-slate-400`}>
@@ -405,7 +418,7 @@ const Form = ({url}) => {
                                             </span>
                                             <input type="text" 
                                             onBlur={handleBlur}
-                                            placeholder="Nhập số điện thoại"
+                                            placeholder={t('placeholder_sdt')}
                                             onFocus={handleFocus} id="sdt" name="sdt"  onChange={handleChange} values={formData.sdt}
                                                 className={`w-full border ${errors.sdt ? 'border-red-500 bg-red-50 focus:ring-red-100' : 'border-slate-200 focus:ring-blue-100 focus:border-blue-500'} pl-10 p-3 rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all bg-slate-50/50 focus:bg-white`} 
                                             />
@@ -418,7 +431,7 @@ const Form = ({url}) => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="group">
-                                <label htmlFor="dateOfBirth" className="block text-sm font-bold text-slate-700 mb-2">Ngày sinh</label>
+                                <label htmlFor="dateOfBirth" className="block text-sm font-bold text-slate-700 mb-2">{t('date_of_birth')}</label>
                                 <input type="date" id="dateOfBirth" name="dateOfBirth" 
                                 onBlur={handleBlur}
                                 onChange={handleChange} values={formData.dateOfBirth}
@@ -427,32 +440,32 @@ const Form = ({url}) => {
                                 {errors.dateOfBirth && <p className="text-red-500 text-xs mt-1 italic">{errors.dateOfBirth}</p>}
                             </div>
                             <div className="group">
-                                <label htmlFor="gender" className="block text-sm font-bold text-slate-700 mb-2">Giới tính</label>
+                                <label htmlFor="gender" className="block text-sm font-bold text-slate-700 mb-2">{t('gender')}</label>
                                 <select id="gender" name="gender" 
                                  
                                  onChange={handleChange} values={formData.gender}
                                     className="w-full border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer">
-                                    <option value="Nam">Nam</option>
-                                    <option value="Nữ">Nữ</option>
-                                    <option value="Khác">Khác</option>
+                                    <option value="Nam">{t('male')}</option>
+                                    <option value="Nữ">{t('female')}</option>
+                                    <option value="Khác">{t('other')}</option>
                                 </select>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <label className="block text-sm font-bold text-slate-700">Quê quán (Địa chỉ thường trú)</label>
+                            <label className="block text-sm font-bold text-slate-700">{t('header_address')}</label>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="queQuan">
                                 <select name="province"
                                    id="province" 
                                    onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none pr-1 transition-all cursor-pointer">
-                                    <option value="">Chọn tỉnh/Thành phố</option>
+                                    <option value="">{t('province')}</option>
                                     {provinces.map((province) => (
                                         <option value={province.code} key={province.code}>{province.name}</option>
                                     ))}
                                 </select>
                                 <select name="district" id="district" 
                                 onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
-                                <option value="">Chọn quận/huyện</option>
+                                <option value="">{t('district')}</option>
                                 {(
                                     districts.map((district) => (
                                         <option value={district.code} key={district.code}>{district.name}</option>
@@ -461,7 +474,7 @@ const Form = ({url}) => {
                                 </select>
                                 <select id="ward" name="ward" 
                                 onChange={handleChangeAddress} className="border border-slate-200 p-3 rounded-xl bg-slate-50/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all cursor-pointer">
-                                <option value="">Chọn phường/xã</option>
+                                <option value="">{t('ward')}</option>
                                 {wards.map((ward) => (
                                     <option value={ward.code} key={ward.code}>{ward.name}</option>
                                 ))}
@@ -473,7 +486,7 @@ const Form = ({url}) => {
                             <button type="submit" id="btnSubmit" onClick={handleSubmit}
                                 className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95">
                                 <i className="fa-solid fa-circle-check"></i>
-                                Xác Nhận Đăng Ký
+                                {t('btn_submit')}
                             </button>
                             {/* <button type="submit" id="btnSubmit" 
                                 className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95">
@@ -487,11 +500,11 @@ const Form = ({url}) => {
                             accept=".xlsx, .xls"
                             onChange={handleChange} />
                             <label htmlFor="fileInput" className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95 cursor-pointer">
-                                    Import file
+                                    {t('btn_import')}
                                 </label>
                             <a href="/list" className="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-blue-600 hover:text-blue-600 text-slate-600 font-bold py-4 rounded-2xl transition-all hover:-translate-y-1 active:scale-95">
                                 <i className="fa-solid fa-list-ul"></i>
-                                Danh Sách KH
+                                {t('btn_list')}
                             </a>
                         </div>
 

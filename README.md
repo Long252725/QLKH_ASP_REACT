@@ -18,3 +18,5 @@ export default {
 /* @import "tailwindcss"; */
 <!-- Add MongoDB.Driver package -->
 dotnet add package MongoDB.Driver
+<!-- i18n react -->
+npm i react-i18next i18next --save

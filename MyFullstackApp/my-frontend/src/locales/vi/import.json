@@ -1,0 +1,24 @@
+{
+    "title": "Kết quả xử lý dữ liệu",
+    "label_success": "Thành công",
+    "label_duplicate": "Trùng lặp",
+    "label_fail": "Thất bại",
+    "download_data_duplicate": "Tải dữ liệu trùng",
+    "download_data_fail": "Tải dữ liệu lỗi",
+    "download_data_success": "Tải dữ liệu Thành công",
+    "back_to_list": "Quay lại danh sách",
+    "add": "Thêm mới",
+    "lits": "Danh sách",
+    "page": "Trang",
+    "page_back": "Trước",
+    "page_next": "Sau",
+    "ho_ten": "Họ và tên",
+    "date_of_birth": "Ngày sinh",
+    "sdt": "SDT",
+    "email": "Email",
+    "address": "Địa chỉ",
+    "logs": {
+        "noData": "Không có dữ liệu nào để hiển thị !"
+    }
+
+}

@@ -1,0 +1,15 @@
+{
+    "gender": {
+        "all": "Tất cả",
+        "gender": "Giới tính",
+        "male": "Nam",
+        "female": "Nữ",
+        "other": "Khác"
+    },
+    "address": {
+        "province": "Chọn tỉnh/Thành phố",
+        "district": "Chọn quận/Huyện",
+        "ward": "Chọn phường/Xã"
+    }
+    
+}

@@ -5,7 +5,8 @@ var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "http://localhos
 var connectionString = builder.Configuration.GetConnectionString("MyDbSql");
 // Đọc cấu hình từ appsettings.json
 builder.Services.AddDbContext<MyDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+);
 // Đăng ký MongoClient như một Singleton
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowReact", policy => {

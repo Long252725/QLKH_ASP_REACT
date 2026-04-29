@@ -17,13 +17,14 @@ public class CustomerController : ControllerBase
         string? province, 
         string? sortBy, 
         string? gender, 
-        string? dob, 
+        string? dobFrom, 
+        string? dobTo,
         int page = 1, 
         int pageSize = 10)
     {
         try
         {
-            var results = _customerRepository.Search(keyword, province, sortBy, gender, dob, page, pageSize);
+            var results = _customerRepository.Search(keyword, province, sortBy, gender, dobFrom, dobTo, page, pageSize);
             return Ok(results);
         }
         catch (Exception ex)
@@ -96,7 +97,7 @@ public class CustomerController : ControllerBase
         try
         {
             var result = await _customerRepository.ImportExcel(file);
-            return Ok( result);
+            return Ok(result);
         }
         catch (Exception ex)
         {

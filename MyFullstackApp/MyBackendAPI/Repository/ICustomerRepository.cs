@@ -5,7 +5,8 @@ public interface ICustomerRepository
     string? province, 
     string? sortBy, 
     string? gender,
-    string? dob,
+    string? dobFrom,
+    string? dobTo,
     int page = 1, 
     int pageSize = 10);
     object DeleteMany(List<string> ids);

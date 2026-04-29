@@ -1,0 +1,14 @@
+{
+    "gender": {
+        "all": "All",
+        "gender": "Gender",
+        "male": "Male",
+        "female": "Female",
+        "other": "Other"
+    },
+    "address": {
+        "province": "Select Province/City",
+        "district": "Select District",
+        "ward": "Select Ward/Commune"
+    }
+}

@@ -14,7 +14,7 @@ public static class CleanTextHelper
 
             // 3. Xóa các tiền tố: tinh, thanh pho, tp, quan, huyen, xa, v.v.
             // Logic: (tinh|thanh\s*pho|tp\.?|quan|huyen|phuong|xa|thi\s*xa|thi\s*tran)\s*
-            string patternPrefix = @"(tinh|thanh\s*pho|tp\.?|quan|huyen|phuong|xa|thi\s*xa|thi\s*tran)\s*";
+            string patternPrefix = @"\b(tinh|thanh\s*pho|tp\.?|quan|huyen|phuong|xa|thi\s*xa|thi\s*tran)\b\s*";
             result = Regex.Replace(result, patternPrefix, "", RegexOptions.IgnoreCase);
 
             // 4. Xóa sạch khoảng trắng còn lại (\s+)

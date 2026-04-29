@@ -3,13 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import Home from './Pages/Home.jsx'
-import Quiz from './Pages/Quiz.jsx'
 import NotFound from './Pages/NotFound.jsx'
 import List from './Pages/List.jsx'
 import Test from './Pages/List2.jsx'
 import Form from './Pages/Form.jsx'
 import Edit from './Pages/Edit.jsx'
 import ShowLog from './Pages/ShowLog.jsx'
+import './locales/i18n.js'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 
@@ -25,10 +25,6 @@ const router = createBrowserRouter([
       {
         path: "/", // Trang chủ: localhost:5173/
         element: <Home url={{ urlASP: URL, urlExpress: URL_Express }} />,
-      },
-      {
-        path: "quiz/:id", // Trang chi tiết: localhost:5173/quiz/1
-        element: <Quiz />,
       },
       {
         path: "list/", // Trang chi tiết: localhost:5173/list
