@@ -2,10 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using MyBackendAPI.Repository;
 var builder = WebApplication.CreateBuilder(args);
 var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173";
-var connectionString = builder.Configuration.GetConnectionString("MyDbSql");
+var connectionStringMySql = builder.Configuration.GetConnectionString("MyDbSql");
+var connectionStringSqlServer = builder.Configuration.GetConnectionString("SqlServer");
 // Đọc cấu hình từ appsettings.json
+// builder.Services.AddDbContext<MyDbContext>(options =>
+//     options.UseMySql(connectionStringMySql, ServerVersion.AutoDetect(connectionStringMySql))
+// );
 builder.Services.AddDbContext<MyDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+    options.UseSqlServer(connectionStringSqlServer)
 );
 // Đăng ký MongoClient như một Singleton
 builder.Services.AddCors(options => {

@@ -3,7 +3,9 @@ using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using MyBackendAPI.Helpers;
+using MyBackendAPI.Models;
 namespace MyBackendAPI.Repository
 {
     public class CustomerRepository : ICustomerRepository
@@ -45,7 +47,11 @@ namespace MyBackendAPI.Repository
                     return new List<DistrictModel>();
                 }
             }
-        }      
+        }     
+        public int GetTotalCustomers()
+        {
+            return _context.Customers.Count();
+        }
 
         public static async Task<List<WardResponse>> FetchWardsByDistrictCodeAsync(int districtCode)
         {
@@ -473,6 +479,38 @@ namespace MyBackendAPI.Repository
         }
         return null;
     }
+    public List<CustomerVM> GetCustomersSelected(string[]? ids)
+        {
+            if(ids == null || ids.Length == 0)
+            {
+                return new List<CustomerVM>();
+            } 
+            // 1. Chuyển array string sang List Guid
+            var guidIds = ids.Select(id => Guid.Parse(id)).ToList();
+
+            // 2. Lấy danh sách từ Database
+            var customersFromDb = _context.Customers
+                                        .Where(c => guidIds.Contains(c.Id))
+                                        .ToList();
+
+            // 3. Dùng .Select để biến List<Customer> thành List<CustomerVM>
+            return customersFromDb.Select(c => new CustomerVM
+            {
+                Id = c.Id,
+                Ho = c.Ho,
+                Ten = c.Ten,
+                TenDem = c.TenDem,
+                HoTenDayDu = c.HoTenDayDu,
+                Email = c.Email,
+                Sdt = c.Sdt,
+                // Lưu ý: Nếu DateOfBirth trong DB là DateTime, hãy ép kiểu trước khi Format
+                DateOfBirth = FormatDateHelper.FormatDate(c.DateOfBirth), 
+                Gender = c.Gender,
+                Province = c.Province,
+                District = c.District,
+                Ward = c.Ward
+            }).ToList(); // Đừng quên .ToList() ở cuối để khớp kiểu trả về
+        }
     public async Task<object> ImportExcel(IFormFile file)
     {
     if (file == null || file.Length == 0)
@@ -518,5 +556,21 @@ namespace MyBackendAPI.Repository
         };
     }
     }
+    public async Task<(List<StatsGender>, List<StatsProvince>)> GetStats()
+{
+    // Đợi truy vấn 1 xong...
+    var genderStats = await _context.Customers
+        .GroupBy(c => c.Gender)
+        .Select(g => new StatsGender { Gender = !string.IsNullOrEmpty(g.Key) ? g.Key : "Không xác định", Count = g.Count() })
+        .ToListAsync();
+
+    // ... rồi mới chạy truy vấn 2
+    var provinceStats = await _context.Customers
+        .GroupBy(c => c.Province)
+        .Select(g => new StatsProvince { Province = !string.IsNullOrEmpty(g.Key) ? g.Key : "Không xác định", Count = g.Count() })
+        .ToListAsync();
+
+    return (genderStats, provinceStats);
+}
     }
 }

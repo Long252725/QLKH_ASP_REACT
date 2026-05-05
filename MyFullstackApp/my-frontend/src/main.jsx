@@ -9,6 +9,8 @@ import Test from './Pages/List2.jsx'
 import Form from './Pages/Form.jsx'
 import Edit from './Pages/Edit.jsx'
 import ShowLog from './Pages/ShowLog.jsx'
+import Login from './Pages/Login.jsx'
+import Register from './Pages/Register.jsx'
 import './locales/i18n.js'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -45,6 +47,15 @@ const router = createBrowserRouter([
       {
         path: "log/", // Trang chi tiết: localhost:5173/log
         element: <ShowLog />,
+      },
+      {
+        path: "login/", // Trang chi tiết: localhost:5173/log
+        element: <Login />,
+      }
+      ,
+      {
+        path: "register/", // Trang chi tiết: localhost:5173/log
+        element: <Register />,
       }
     ],
   },

@@ -25,6 +25,10 @@ GET {{MyBackendAPI_HostAddress}}/api/customer/search?sortBy=HoTenDayDu&page=2&pa
 Content-Type: application/json
 
 ###
+GET {{MyBackendAPI_HostAddress}}/api/customer/total
+Content-Type: application/json
+
+###
 POST  {{MyBackendAPI_HostAddress}}/api/customer/delete
 Content-Type: application/json
 
@@ -53,4 +57,8 @@ Content-Type: application/json
     "District": "Ba Dinh",
     "Ward": "Phuong 1"
 }
+###
+GET {{MyBackendAPI_HostAddress}}/api/customer/stats
+Content-Type: application/json
+
 ###

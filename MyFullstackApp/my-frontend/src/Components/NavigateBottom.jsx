@@ -1,8 +1,10 @@
-export default function NavigateBottom({ objectSearch, setObjectSearch, totalPages, pageSizeSate, setPageSizeState, handleSearch, t }) {
+export default function NavigateBottom({ objectSearch, setObjectSearch, totalPages, pageSizeSate, setPageSizeState, handleSearch, t, totalCustomer }) {
   return (
     <>
       <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center border-t border-gray-100 bg-gray-50">
-        <div></div>
+        <div className="text-slate-700 text-sm font-medium ml-5">
+          <p> {totalCustomer.toLocaleString('en-US')} {t('total_customers')}</p>
+        </div>
         <div className="flex cursor-pointer items-center justify-center gap-2 border-t border-gray-100 bg-gray-50 p-4">
           <button
             onClick={() => setObjectSearch((prev) => ({ ...prev, page: 1 }))}
@@ -17,7 +19,10 @@ export default function NavigateBottom({ objectSearch, setObjectSearch, totalPag
               .map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setObjectSearch((prev) => ({ ...prev, page: i + 1 }))}
+                  onClick={() => setObjectSearch((prev) => ({
+                    ...prev,
+                    page: i + 1
+                    }))}
                   className={`h-8 w-8 cursor-pointer rounded-md text-sm font-medium transition-colors ${objectSearch.page === i + 1 ? 'bg-blue-600 text-white' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'}`}
                 >
                   {i + 1}

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyBackendAPI.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -33,6 +34,20 @@ public class CustomerController : ControllerBase
         }
     }
 
+    [HttpPost("dddd")] 
+    public IActionResult GetCustomersSelected([FromBody] string[]? ids)
+    {
+        try
+        {
+            Console.WriteLine(ids);
+            var customersSelected = _customerRepository.GetCustomersSelected(ids);
+            return Ok(new { success = true, data = customersSelected, message = "oke" });
+        }
+        catch (Exception ex)
+        {
+           return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
     [HttpPost("add")]
     public IActionResult Add([FromBody] CustomerModel customer)
     {
@@ -40,6 +55,18 @@ public class CustomerController : ControllerBase
         {
             var newCustomer = _customerRepository.Add(customer);
             return Ok(new { success = true, message = "Thêm khách hàng thành công!", data = newCustomer });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+    [HttpGet("total")]
+    public IActionResult GetTotal()
+    {
+        try
+        {
+            return Ok(_customerRepository.GetTotalCustomers());
         }
         catch (Exception ex)
         {
@@ -98,6 +125,23 @@ public class CustomerController : ControllerBase
         {
             var result = await _customerRepository.ImportExcel(file);
             return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats()
+    {
+        try
+        {
+            var (genderStats, provinceStats) = await _customerRepository.GetStats();
+            return Ok(new 
+            { 
+                GenderData = genderStats, 
+                ProvinceData = provinceStats 
+            });
         }
         catch (Exception ex)
         {

@@ -31,6 +31,8 @@
     "last": "Cuối",
     "page_size": "Số bản ghi: ",
     "warming_delete": "Hành động này không thể hoàn tác. Bạn có chắc muốn tiếp tục không?",
+    "total_customers": "khách hàng",
+    "display_columns": "Hiển thị cột",
 
     "logs": {
         "showAlert": "Bạn chưa chọn khách hàng nào !",

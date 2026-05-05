@@ -1,3 +1,6 @@
+using MyBackendAPI.Models;
+
+
 public interface ICustomerRepository
 {
     object Search(
@@ -14,4 +17,7 @@ public interface ICustomerRepository
     CustomerVM Update(CustomerModel customer);
     CustomerVM GetCustomerById(string id);
     Task<object> ImportExcel(IFormFile file);
+    List<CustomerVM> GetCustomersSelected(string[]? ids);
+    int GetTotalCustomers();
+    Task<(List<StatsGender>, List<StatsProvince>)> GetStats();
 }
